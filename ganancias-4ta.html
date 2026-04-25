@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora Ganancias 4ª Categoría 2026</title>
+  <style>
+    :root {
+      --blue-dark: #1a365d; --blue: #2b6cb0; --blue-light: #ebf4ff;
+      --green-dark: #276749; --green-light: #f0fff4;
+      --red-dark: #c53030; --red-light: #fff5f5;
+      --orange-dark: #c05621; --orange-light: #fffbeb;
+      --gray-100: #f7fafc; --gray-200: #e2e8f0;
+      --gray-400: #a0aec0; --gray-600: #4a5568; --gray-800: #2d3748;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f4f8; color: var(--gray-800); min-height: 100vh; font-size: 15px;
+    }
+    .header {
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+      color: white; padding: 2rem 1rem; text-align: center;
+    }
+    .header h1 { font-size: 1.7rem; margin-bottom: 0.35rem; }
+    .header p { opacity: 0.82; font-size: 0.9rem; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+    .alert {
+      padding: 0.8rem 1rem; border-radius: 7px;
+      font-size: 0.82rem; line-height: 1.6; margin-bottom: 1.2rem;
+    }
+    .alert-info  { background: var(--blue-light); border-left: 4px solid var(--blue); color: #1a3a6c; }
+    .alert-warn  { background: var(--orange-light); border-left: 4px solid #d69e2e; color: #744210; }
+    .card {
+      background: white; border-radius: 10px; padding: 1.4rem;
+      margin-bottom: 1.2rem; box-shadow: 0 1px 5px rgba(0,0,0,0.07);
+    }
+    .card-title {
+      font-size: 1rem; font-weight: 700; color: var(--blue);
+      margin-bottom: 1rem; padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--blue-light);
+    }
+    .card-title small { font-weight: 400; color: var(--gray-400); font-size: 0.78rem; margin-left: 0.4rem; }
+
+    /* PISO TABLE */
+    .piso-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .piso-table th {
+      background: var(--gray-100); font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em; color: var(--gray-600);
+      padding: 0.5rem 0.75rem; text-align: left;
+    }
+    .piso-table th:not(:first-child) { text-align: right; }
+    .piso-table td { padding: 0.52rem 0.75rem; border-bottom: 1px solid var(--gray-200); }
+    .piso-table td:not(:first-child) { text-align: right; font-family: monospace; font-weight: 700; }
+    .piso-table td:last-child { color: var(--blue-dark); font-size: 0.9rem; }
+    .piso-table tr:last-child td { border-bottom: none; }
+
+    /* FORM */
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+    label { font-size: 0.8rem; font-weight: 600; color: var(--gray-600); }
+    .hint { font-size: 0.72rem; font-weight: 400; color: var(--gray-400); display: block; margin-top: 0.1rem; }
+    input[type="number"], select {
+      padding: 0.55rem 0.75rem; border: 2px solid var(--gray-200);
+      border-radius: 7px; font-size: 0.95rem; color: var(--gray-800);
+      background: white; outline: none; width: 100%; transition: border-color 0.15s;
+    }
+    input:focus, select:focus { border-color: var(--blue); }
+    .aportes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 0.8rem; }
+    .ded-item {
+      background: var(--gray-100); border-radius: 8px; padding: 0.85rem;
+      border-left: 3px solid var(--blue-light);
+    }
+    .ded-item label { color: var(--gray-800); font-size: 0.82rem; }
+    .ded-rule { font-size: 0.71rem; color: var(--green-dark); font-weight: 600; margin: 0.2rem 0 0.4rem; }
+    .ded-item input { background: white; }
+    .ded-section-title {
+      font-size: 0.78rem; font-weight: 700; color: var(--blue);
+      margin: 1rem 0 0.5rem; display: block;
+    }
+
+    /* MONTHLY TABLE */
+    .month-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .month-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 860px; }
+    .month-table thead tr:first-child th {
+      background: var(--blue-dark); color: white;
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.04em; padding: 0.4rem 0.3rem; text-align: center;
+      border-right: 1px solid rgba(255,255,255,0.15);
+    }
+    .month-table thead tr:first-child th:first-child { text-align: left; border-right: 2px solid rgba(255,255,255,0.3); }
+    .month-table thead tr.th-rule th {
+      background: var(--gray-100); font-size: 0.62rem; font-weight: 600;
+      color: var(--green-dark); padding: 0.2rem 0.3rem; text-align: center;
+      border-bottom: 2px solid var(--gray-200);
+    }
+    .month-table thead tr.th-rule th:first-child { text-align: left; color: var(--gray-400); }
+    .month-table tbody tr:hover { background: #fafcff; }
+    .month-table tbody td {
+      padding: 0.2rem 0.28rem; border-bottom: 1px solid var(--gray-200); vertical-align: middle;
+    }
+    .month-table tbody td:first-child {
+      font-weight: 700; color: var(--gray-800); font-size: 0.82rem;
+      padding-left: 0.2rem; white-space: nowrap;
+      border-right: 2px solid var(--gray-200);
+    }
+    .month-table .col-grp { border-right: 1px solid #e8edf5; }
+    .month-table input[type="number"] {
+      padding: 0.22rem 0.3rem; font-size: 0.79rem; text-align: right;
+      border: 1.5px solid var(--gray-200); border-radius: 4px;
+      width: 100%; min-width: 80px; background: white; outline: none;
+      color: var(--gray-800); transition: border-color 0.12s;
+    }
+    .month-table input:focus { border-color: var(--blue); background: #f0f8ff; }
+    .month-table input.has-value { border-color: #90cdf4; background: #f7fbff; }
+    .month-table tfoot td {
+      font-weight: 700; background: #edf2f7; font-family: monospace;
+      font-size: 0.79rem; padding: 0.4rem 0.28rem; text-align: right;
+      border-top: 2px solid var(--gray-200);
+    }
+    .month-table tfoot td:first-child {
+      text-align: left; font-family: inherit;
+      font-size: 0.68rem; text-transform: uppercase;
+      letter-spacing: 0.04em; color: var(--gray-600); font-weight: 700;
+    }
+    .month-table tfoot .tot-main { color: var(--blue-dark); }
+    .month-table tfoot .tot-ded  { color: #276749; }
+    .month-btn-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; align-items: center; }
+    .btn-sm {
+      border-radius: 6px; padding: 0.38rem 0.75rem; font-size: 0.78rem;
+      font-weight: 600; cursor: pointer; border: 1.5px solid; transition: all 0.12s;
+    }
+    .btn-copy { background: var(--blue-light); color: var(--blue-dark); border-color: #90cdf4; }
+    .btn-copy:hover { background: #bee3f8; }
+    .btn-muted { background: white; color: var(--gray-600); border-color: var(--gray-200); }
+    .btn-muted:hover { background: var(--gray-100); }
+
+    /* BUTTON */
+    .btn-calc {
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+      color: white; border: none; border-radius: 8px;
+      padding: 1rem 2rem; font-size: 1rem; font-weight: 700;
+      cursor: pointer; width: 100%; letter-spacing: 0.02em; transition: opacity 0.15s;
+    }
+    .btn-calc:hover { opacity: 0.9; }
+
+    /* RESULTS */
+    #results { display: none; margin-top: 1.5rem; }
+    .calc-table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+    .calc-table tr { border-bottom: 1px solid #f0f4f8; }
+    .calc-table tr:last-child { border-bottom: none; }
+    .calc-table td { padding: 0.52rem 0.4rem; vertical-align: top; }
+    .calc-table td:last-child { text-align: right; font-family: monospace; font-weight: 600; white-space: nowrap; }
+    .calc-table .sec td {
+      background: var(--gray-100); font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-600);
+      padding: 0.65rem 0.4rem 0.35rem;
+    }
+    .calc-table .pos td:last-child { color: var(--green-dark); }
+    .calc-table .neg td:last-child { color: var(--red-dark); }
+    .calc-table .sub td { font-weight: 700; border-top: 2px solid var(--gray-200); padding-top: 0.6rem; }
+    .calc-table .total td {
+      font-size: 1rem; font-weight: 800; background: var(--red-light);
+      border-top: 2px solid #feb2b2; padding: 0.75rem 0.4rem;
+    }
+    .calc-table .total td:last-child { color: var(--red-dark); font-size: 1.1rem; }
+    .calc-table .notax td {
+      font-size: 1rem; font-weight: 800; background: var(--green-light);
+      border-top: 2px solid #9ae6b4; padding: 0.75rem 0.4rem; color: var(--green-dark);
+    }
+    .cap { font-size: 0.71rem; color: var(--orange-dark); display: block; margin-top: 0.15rem; }
+
+    /* SCALE */
+    .scale-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    .scale-table th {
+      text-align: left; font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-600);
+      padding: 0.4rem 0.5rem; border-bottom: 2px solid var(--gray-200);
+    }
+    .scale-table th:not(:first-child) { text-align: right; }
+    .scale-table td { padding: 0.5rem 0.5rem; border-bottom: 1px solid #f0f4f8; }
+    .scale-table td:not(:first-child) { text-align: right; font-family: monospace; }
+    .scale-table .inactive td { color: var(--gray-400); }
+    .scale-table .full { background: var(--blue-light); }
+    .scale-table .full td { font-weight: 600; }
+    .scale-table .full td:last-child { color: var(--red-dark); }
+    .scale-table .partial { background: #fefcbf; }
+    .scale-table .partial td { font-weight: 700; }
+    .scale-table .partial td:last-child { color: var(--orange-dark); }
+    .scale-table tfoot td {
+      font-weight: 800; border-top: 2px solid var(--gray-200); padding: 0.6rem 0.5rem; font-size: 0.95rem;
+    }
+    .scale-table tfoot td:not(:first-child) { font-family: monospace; color: var(--red-dark); text-align: right; }
+
+    /* MONTHLY DETAIL */
+    .det-table-wrap { overflow-x: auto; }
+    .det-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; min-width: 600px; }
+    .det-table th {
+      text-align: left; font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-600);
+      padding: 0.4rem 0.4rem; border-bottom: 2px solid var(--gray-200); white-space: nowrap;
+    }
+    .det-table th:not(:first-child) { text-align: right; }
+    .det-table td { padding: 0.42rem 0.4rem; border-bottom: 1px solid #f0f4f8; }
+    .det-table td:not(:first-child) { text-align: right; font-family: monospace; }
+    .det-table .d-red  { color: var(--red-dark); }
+    .det-table .d-grn  { color: var(--green-dark); font-weight: 700; }
+    .det-table .d-ora  { color: var(--orange-dark); font-weight: 700; }
+    .det-table .d-gray { color: var(--gray-400); }
+    .det-table tfoot td {
+      font-weight: 700; border-top: 2px solid var(--gray-200);
+      padding: 0.5rem 0.4rem; font-size: 0.88rem; background: var(--gray-100);
+    }
+    .det-table tfoot td:not(:first-child) { text-align: right; font-family: monospace; }
+
+    /* SUMMARY */
+    .result-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.2rem; }
+    .rbox {
+      background: linear-gradient(135deg, var(--red-light), #fff8f8);
+      border-radius: 10px; padding: 1.1rem; text-align: center;
+    }
+    .rbox.green { background: linear-gradient(135deg, var(--green-light), #f0fff8); }
+    .rbox .amt { font-size: 1.45rem; font-weight: 800; color: var(--red-dark); font-family: monospace; }
+    .rbox.green .amt { color: var(--green-dark); }
+    .rbox .lbl { font-size: 0.75rem; color: var(--gray-600); margin-top: 0.3rem; }
+    .srow {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 0.5rem 0; border-bottom: 1px solid var(--gray-200);
+      font-size: 0.88rem; gap: 1rem;
+    }
+    .srow:last-child { border-bottom: none; }
+    .srow .v { font-weight: 700; font-family: monospace; white-space: nowrap; }
+    .srow.net { font-size: 1rem; font-weight: 700; }
+    .srow.net .v { color: var(--green-dark); font-size: 1.1rem; }
+    .no-tax-box {
+      background: linear-gradient(135deg, var(--green-light), #e6fffa);
+      border: 2px solid #68d391; border-radius: 10px; padding: 1.8rem; text-align: center;
+    }
+    .no-tax-box h3 { color: var(--green-dark); font-size: 1.3rem; margin-bottom: 0.5rem; }
+    .no-tax-box p { color: #2f855a; font-size: 0.88rem; line-height: 1.6; margin-top: 0.4rem; }
+
+    @media (max-width: 640px) {
+      .result-grid { grid-template-columns: 1fr 1fr; }
+      .aportes-grid { grid-template-columns: 1fr; }
+      .header h1 { font-size: 1.3rem; }
+      .piso-table { font-size: 0.75rem; }
+    }
+    @media (max-width: 400px) {
+      .result-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Impuesto a las Ganancias · 4ª Categoría</h1>
+  <p>Relación de dependencia · Período Fiscal 2026 · Valores oficiales ARCA (H1 2026)</p>
+</div>
+
+<div class="container">
+
+  <!-- PISO TABLE -->
+  <div class="card">
+    <div class="card-title">📊 ¿Desde qué sueldo bruto se paga Ganancias en 2026? <small>Sin deducciones adicionales · Con SAC · Aportes 17%</small></div>
+    <table class="piso-table">
+      <thead>
+        <tr>
+          <th>Situación familiar</th>
+          <th>Deducciones anuales</th>
+          <th>Piso bruto mensual</th>
+        </tr>
+      </thead>
+      <tbody id="pisoBody"></tbody>
+    </table>
+    <p style="font-size:0.71rem;color:var(--gray-400);margin-top:0.6rem;">
+      * Piso mensual = deducciones ÷ (12 × 0,83). Criterio ARCA — coincide con los valores publicados para H1 2026.
+    </p>
+  </div>
+
+  <div class="alert alert-info">
+    <strong>Cómo usar:</strong> Completá la tabla mes a mes. El cálculo usa el <strong>método acumulado (RG 4003/2017)</strong>:
+    la retención de cada mes = impuesto sobre GNSI acumulada hasta ese mes − impuesto ya retenido en meses anteriores.
+    Un mes sin retención (o con devolución) ocurre cuando el acumulado revisado resulta menor al esperado.
+  </div>
+
+  <!-- APORTES Y FAMILIA -->
+  <div class="card">
+    <div class="card-title">⚙️ Datos fijos del período</div>
+    <label style="display:block;margin-bottom:0.4rem;">Aportes previsionales obligatorios <span class="hint">% sobre el bruto — deducibles</span></label>
+    <div class="aportes-grid">
+      <div class="form-group"><label>Jubilación SIPA</label><input type="number" id="pJubil" value="11" min="0" max="30" step="0.5"></div>
+      <div class="form-group"><label>Obra social</label><input type="number" id="pOS" value="3" min="0" max="15" step="0.5"></div>
+      <div class="form-group"><label>PAMI / INSSJP</label><input type="number" id="pPAMI" value="3" min="0" max="10" step="0.5"></div>
+    </div>
+    <div class="form-grid" style="margin-top:1.2rem;">
+      <div class="form-group">
+        <label>Cónyuge / unión convivencial a cargo <span class="hint">Sin ingresos propios o menores al MNI ($5.151.802 anual)</span></label>
+        <select id="conyuge">
+          <option value="0">No / tiene ingresos propios</option>
+          <option value="1">Sí — a cargo sin ingresos</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Hijos/as menores de 18 años <span class="hint">Cantidad</span></label>
+        <input type="number" id="hijos" value="0" min="0" max="20" step="1">
+      </div>
+      <div class="form-group">
+        <label>Hijos/as incapacitados para el trabajo <span class="hint">Sin límite de edad</span></label>
+        <input type="number" id="hijosInc" value="0" min="0" max="10" step="1">
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA MENSUAL -->
+  <div class="card">
+    <div class="card-title">📅 Ingresos y deducciones — mes a mes</div>
+    <div class="month-btn-row">
+      <button class="btn-sm btn-copy" onclick="copiarEnero()">↓ Copiar Enero a todos los meses</button>
+      <button class="btn-sm btn-muted" onclick="limpiarMeses()">✕ Limpiar</button>
+      <span style="font-size:0.73rem;color:var(--gray-400);">SAC: ingresalo en el mes en que se percibe (Junio / Diciembre)</span>
+    </div>
+    <div class="month-table-wrap">
+      <table class="month-table">
+        <thead>
+          <tr>
+            <th rowspan="2" style="min-width:78px">Mes</th>
+            <th colspan="2" style="background:#234680">📥 Ingresos</th>
+            <th colspan="7" style="background:#276749">🧾 Deducciones Art. 85 (valores del mes)</th>
+          </tr>
+          <tr class="th-rule">
+            <th>Sueldo bruto</th>
+            <th class="col-grp">SAC / Bono</th>
+            <th>Alquiler<br><span style="font-weight:400;color:#888">40% · tope MNI/año</span></th>
+            <th>Prepaga<br><span style="font-weight:400;color:#888">100% · tope 5% GN</span></th>
+            <th>P. Doméstico<br><span style="font-weight:400;color:#888">100% · tope MNI/año</span></th>
+            <th>Seg. Vida<br><span style="font-weight:400;color:#888">100% · tope $753k</span></th>
+            <th>Seg. Retiro<br><span style="font-weight:400;color:#888">100% · tope $753k</span></th>
+            <th>Hipoteca<br><span style="font-weight:400;color:#888">100% · tope $20k</span></th>
+            <th>Otros ded.<br><span style="font-weight:400;color:#888">ver nota abajo</span></th>
+          </tr>
+        </thead>
+        <tbody id="mesBody"></tbody>
+        <tfoot>
+          <tr>
+            <td>Total anual</td>
+            <td class="tot-main" id="tot_s">—</td>
+            <td class="tot-main col-grp" id="tot_sac">—</td>
+            <td class="tot-ded" id="tot_alq">—</td>
+            <td class="tot-ded" id="tot_prep">—</td>
+            <td class="tot-ded" id="tot_dom">—</td>
+            <td class="tot-ded" id="tot_segv">—</td>
+            <td class="tot-ded" id="tot_segr">—</td>
+            <td class="tot-ded" id="tot_hip">—</td>
+            <td class="tot-ded" id="tot_otros">—</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <p style="font-size:0.72rem;color:var(--gray-400);margin-top:0.7rem;">
+      <strong>Otros ded.:</strong> honorarios médicos (40%), indumentaria laboral (40%), colegios/consejos profesionales (100%), cajas provinciales (100%), gastos educativos hijos (40%), donaciones (100% · tope 5% GN), sepelio (100% · tope $996).
+      Ingresá el importe bruto pagado en ese mes — el porcentaje deducible y topes se aplican automáticamente al acumulado del año.
+    </p>
+  </div>
+
+  <button class="btn-calc" onclick="calcular()">Calcular →</button>
+
+  <div id="results"></div>
+
+</div>
+
+<script>
+// ============================================================
+// VALORES ARCA/AFIP — Período Fiscal 2026, H1
+// ============================================================
+const A = {
+  MNI:        5_151_802.50,
+  DED_ESP:   24_728_652.02,  // MNI × 4.8 — rel.dependencia (Art.30 inc.c ap.1)
+  CONYUGE:    4_851_964.66,
+  HIJO:       2_446_863.48,
+  HIJO_INC:   4_893_726.96,
+  SEG_VIDA_TOPE:   753_472.14,
+  HIP_TOPE:         20_000.00,
+  SEPELIO_TOPE:        996.23,
+  ESCALA: [
+    { d:           0,   h:  2_000_030.09, cf:           0,   p:  5 },
+    { d:  2_000_030.09, h:  4_000_060.17, cf:     100_001.50, p:  9 },
+    { d:  4_000_060.17, h:  6_000_090.26, cf:     280_004.21, p: 12 },
+    { d:  6_000_090.26, h:  9_000_135.40, cf:     520_007.82, p: 15 },
+    { d:  9_000_135.40, h: 18_000_270.80, cf:     970_014.59, p: 19 },
+    { d: 18_000_270.80, h: 27_000_406.20, cf:   2_680_040.32, p: 23 },
+    { d: 27_000_406.20, h: 40_500_609.30, cf:   4_750_071.46, p: 27 },
+    { d: 40_500_609.30, h: 60_750_913.96, cf:   8_395_126.30, p: 31 },
+    { d: 60_750_913.96, h: Infinity,       cf:  14_672_720.74, p: 35 },
+  ],
+};
+
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+               'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+const COLS = ['s','sac','alq','prep','dom','segv','segr','hip','otros'];
+
+const $   = id => document.getElementById(id);
+const num = id => parseFloat($(id)?.value) || 0;
+const int = id => parseInt($(id)?.value)   || 0;
+const mnm = (i,col) => parseFloat($(`${col}_${i}`)?.value) || 0;
+
+function fmt(n) {
+  const s = Math.abs(Math.round(n)).toLocaleString('es-AR');
+  return (n < 0 ? '− ' : '') + '$ ' + s;
+}
+function fmtSigned(n) {
+  if (Math.abs(n) < 0.5) return '—';
+  const s = Math.abs(Math.round(n)).toLocaleString('es-AR');
+  return (n < 0 ? '+ $ ' : '− $ ') + s;
+}
+function pct(n) { return n.toFixed(2).replace('.', ',') + '%'; }
+
+function impuesto(sujeta) {
+  if (sujeta <= 0) return 0;
+  for (const t of A.ESCALA) {
+    if (sujeta <= t.h) return t.cf + (sujeta - t.d) * t.p / 100;
+  }
+  return 0;
+}
+
+// ── TABLA DE PISOS ──────────────────────────────────────────
+const ESCENARIOS = [
+  { lbl: 'Soltero/a sin cargas',   c:0, h:0, i:0 },
+  { lbl: 'Soltero/a, 1 hijo/a',    c:0, h:1, i:0 },
+  { lbl: 'Soltero/a, 2 hijos/as',  c:0, h:2, i:0 },
+  { lbl: 'Casado/a sin hijos',      c:1, h:0, i:0 },
+  { lbl: 'Casado/a, 1 hijo/a',      c:1, h:1, i:0 },
+  { lbl: 'Casado/a, 2 hijos/as',    c:1, h:2, i:0 },
+  { lbl: 'Casado/a, 3 hijos/as',    c:1, h:3, i:0 },
+];
+(function renderPisos() {
+  $('pisoBody').innerHTML = ESCENARIOS.map(e => {
+    const ded = A.MNI + A.DED_ESP + e.c*A.CONYUGE + e.h*A.HIJO + e.i*A.HIJO_INC;
+    return `<tr><td>${e.lbl}</td><td>${fmt(ded)}</td><td>${fmt(ded/(12*0.83))}</td></tr>`;
+  }).join('');
+})();
+
+// ── TABLA MENSUAL ────────────────────────────────────────────
+(function renderMeses() {
+  $('mesBody').innerHTML = MESES.map((mes, i) => `
+    <tr>
+      <td>${mes}</td>
+      <td><input type="number" id="s_${i}"     value="0" min="0" oninput="actualizarTotales(this)"></td>
+      <td class="col-grp"><input type="number" id="sac_${i}"   value="0" min="0" oninput="actualizarTotales(this)"></td>
+      <td><input type="number" id="alq_${i}"   value="0" min="0" oninput="actualizarTotales(this)"></td>
+      <td><input type="number" id="prep_${i}"  value="0" min="0" oninput="actualizarTotales(this)"></td>
+      <td><input type="number" id="dom_${i}"   value="0" min="0" oninput="actualizarTotales(this)"></td>
+      <td><input type="number" id="segv_${i}"  value="0" min="0" oninput="actualizarTotales(this)"></td>
+      <td><input type="number" id="segr_${i}"  value="0" min="0" oninput="actualizarTotales(this)"></td>
+      <td><input type="number" id="hip_${i}"   value="0" min="0" oninput="actualizarTotales(this)"></td>
+      <td><input type="number" id="otros_${i}" value="0" min="0" oninput="actualizarTotales(this)"></td>
+    </tr>`).join('');
+})();
+
+function actualizarTotales(el) {
+  if (el) el.classList.toggle('has-value', parseFloat(el.value) > 0);
+  COLS.forEach(col => {
+    const total = Array.from({length:12}, (_,i) => mnm(i,col)).reduce((a,b)=>a+b,0);
+    const el2 = $('tot_'+col);
+    if (el2) el2.textContent = total > 0 ? '$ ' + Math.round(total).toLocaleString('es-AR') : '—';
+  });
+}
+function copiarEnero() {
+  COLS.forEach(col => {
+    const v = $(`${col}_0`)?.value || '0';
+    for (let i = 1; i < 12; i++) {
+      const el = $(`${col}_${i}`);
+      if (el) { el.value = v; el.classList.toggle('has-value', parseFloat(v) > 0); }
+    }
+  });
+  actualizarTotales(null);
+}
+function limpiarMeses() {
+  COLS.forEach(col => {
+    for (let i = 0; i < 12; i++) {
+      const el = $(`${col}_${i}`);
+      if (el) { el.value = '0'; el.classList.remove('has-value'); }
+    }
+  });
+  actualizarTotales(null);
+}
+
+// ── CÁLCULO PRINCIPAL ────────────────────────────────────────
+function calcular() {
+  const pJubil = num('pJubil') / 100;
+  const pOS    = num('pOS')    / 100;
+  const pPAMI  = num('pPAMI')  / 100;
+  const pAp    = pJubil + pOS + pPAMI;
+  const conyu  = int('conyuge');
+  const nHijos = int('hijos');
+  const nHInc  = int('hijosInc');
+
+  // Monthly arrays
+  const sueldos = Array.from({length:12}, (_,i) => mnm(i,'s'));
+  const sacs    = Array.from({length:12}, (_,i) => mnm(i,'sac'));
+  const alqs    = Array.from({length:12}, (_,i) => mnm(i,'alq'));
+  const preps   = Array.from({length:12}, (_,i) => mnm(i,'prep'));
+  const doms    = Array.from({length:12}, (_,i) => mnm(i,'dom'));
+  const segVs   = Array.from({length:12}, (_,i) => mnm(i,'segv'));
+  const segRs   = Array.from({length:12}, (_,i) => mnm(i,'segr'));
+  const hips    = Array.from({length:12}, (_,i) => mnm(i,'hip'));
+  // "otros" columna: honorarios(40%) + indumentaria(40%) + colegios(100%) +
+  //   cajas(100%) + educacion(40%) + donaciones(100%,5%GN) + sepelio(100%,$996)
+  // El usuario ingresa el importe bruto — aplicamos un factor promedio ponderado.
+  // Para simplificar: lo tratamos como 100% deducible (sin tope mensual, topes
+  // anuales se controlan en la suma anual).
+  const otrss   = Array.from({length:12}, (_,i) => mnm(i,'otros'));
+
+  const salAn  = sueldos.reduce((a,b)=>a+b,0);
+  const sacAn  = sacs.reduce((a,b)=>a+b,0);
+  const bruto  = salAn + sacAn;
+  if (bruto <= 0) { alert('Ingresá al menos un sueldo en la tabla.'); return; }
+
+  // Annual totals from monthly
+  const alqAn   = alqs.reduce((a,b)=>a+b,0);
+  const prepAn  = preps.reduce((a,b)=>a+b,0);
+  const domAn   = doms.reduce((a,b)=>a+b,0);
+  const segVAn  = segVs.reduce((a,b)=>a+b,0);
+  const segRAn  = segRs.reduce((a,b)=>a+b,0);
+  const hipAn   = hips.reduce((a,b)=>a+b,0);
+  const otrsAn  = otrss.reduce((a,b)=>a+b,0);
+
+  // Annual aportes & gNeta
+  const aTotal  = bruto * pAp;
+  const gNeta   = bruto - aTotal;
+
+  // ── DEDUCCIONES PERSONALES ANUALES ───────────────────────
+  const dMNI   = A.MNI;
+  const dEsp   = A.DED_ESP;
+  const dConyu = conyu  * A.CONYUGE;
+  const dHijos = nHijos * A.HIJO;
+  const dHInc  = nHInc  * A.HIJO_INC;
+  const dPers  = dMNI + dEsp + dConyu + dHijos + dHInc;
+
+  // ── ANNUAL CAPS for monthly deductions ───────────────────
+  // Alquiler: 40% del anual, tope MNI
+  const dAlqAnnualCap = Math.min(alqAn * 0.40, A.MNI);
+  const dAlqRaw = alqAn * 0.40;
+  const alqCapHit = dAlqAnnualCap < dAlqRaw;
+
+  // Prepaga: 100%, tope 5% gNeta
+  const dPrepAnnualCap = Math.min(prepAn, gNeta * 0.05);
+  const prepCapHit = dPrepAnnualCap < prepAn;
+
+  // Doméstico: 100%, tope MNI
+  const dDomAnnualCap = Math.min(domAn, A.MNI);
+  const domCapHit = dDomAnnualCap < domAn;
+
+  // Seguros vida: 100%, tope SEG_VIDA_TOPE
+  const dSegVAnnualCap = Math.min(segVAn, A.SEG_VIDA_TOPE);
+  const segVCapHit = dSegVAnnualCap < segVAn;
+
+  // Seguros retiro: 100%, tope SEG_VIDA_TOPE
+  const dSegRAnnualCap = Math.min(segRAn, A.SEG_VIDA_TOPE);
+  const segRCapHit = dSegRAnnualCap < segRAn;
+
+  // Hipoteca: 100%, tope HIP_TOPE
+  const dHipAnnualCap = Math.min(hipAn, A.HIP_TOPE);
+  const hipCapHit = dHipAnnualCap < hipAn;
+
+  // "Otros": tratamos como 100% (el usuario ingresa el neto deducible, no bruto).
+  // No hay un único tope — es una combinación de ítems.
+  // Usamos tope = otrsAn (es decir, deducimos todo lo ingresado, sin cap adicional).
+  const dOtrsAnnualCap = otrsAn;
+
+  const dOtras = dAlqAnnualCap + dPrepAnnualCap + dDomAnnualCap +
+                 dSegVAnnualCap + dSegRAnnualCap + dHipAnnualCap + dOtrsAnnualCap;
+
+  const totalDed = dPers + dOtras;
+  const baseAnual = Math.max(0, gNeta - totalDed);
+  const impAnual  = impuesto(baseAnual);
+
+  // ── RG 4003: CÁLCULO MES A MES (método acumulado) ────────
+  // Para cada mes M:
+  //   impAcum(M) = impuesto( max(0, gNetaAcum(M) - dedAcum(M)) )
+  //   retención(M) = impAcum(M) - impAcum(M-1)
+  //
+  // Deducciones personales: prorrateadas en 12 partes iguales.
+  // Deducciones art.85 con cap mensual: deducimos el importe del mes,
+  //   controlando que el acumulado no supere el cap anual.
+  // "Otros" columna: prorrateamos el total al 1/12 por mes para el loop
+  //   (alternativa: deducir en el mes ingresado — aquí usamos prorrateo).
+
+  const retenciones = [];
+  const detalleM   = [];
+  let impPrev = 0;
+  let alqAcum = 0, prepAcum = 0, domAcum = 0;
+  let segVAcum = 0, segRAcum = 0, hipAcum = 0;
+
+  for (let m = 0; m < 12; m++) {
+    // Acumular bruto hasta mes m
+    let brutoAcum = 0;
+    for (let j = 0; j <= m; j++) brutoAcum += sueldos[j] + sacs[j];
+    const gNetaAcum = brutoAcum * (1 - pAp);
+
+    // Deducciones personales: prorrateo (M+1)/12
+    const frac = (m + 1) / 12;
+    const dPersAcum = dPers * frac;
+
+    // Deducciones mensuales con seguimiento de cap acumulado
+    const alq_m = Math.max(0, Math.min(alqs[m] * 0.40, dAlqAnnualCap - alqAcum));
+    alqAcum += alq_m;
+
+    const prep_m = Math.max(0, Math.min(preps[m], dPrepAnnualCap - prepAcum));
+    prepAcum += prep_m;
+
+    const dom_m = Math.max(0, Math.min(doms[m], dDomAnnualCap - domAcum));
+    domAcum += dom_m;
+
+    const segV_m = Math.max(0, Math.min(segVs[m], dSegVAnnualCap - segVAcum));
+    segVAcum += segV_m;
+
+    const segR_m = Math.max(0, Math.min(segRs[m], dSegRAnnualCap - segRAcum));
+    segRAcum += segR_m;
+
+    const hip_m = Math.max(0, Math.min(hips[m], dHipAnnualCap - hipAcum));
+    hipAcum += hip_m;
+
+    // "Otros": prorrateo simple (aplicamos M+1/12 del total)
+    const otrs_acum = dOtrsAnnualCap * frac;
+
+    const dedMensualesAcum = alqAcum + prepAcum + domAcum + segVAcum + segRAcum + hipAcum + otrs_acum;
+    const dedTotalAcum = dPersAcum + dedMensualesAcum;
+    const baseAcum = Math.max(0, gNetaAcum - dedTotalAcum);
+    const impAcum  = impuesto(baseAcum);
+
+    const retencion_m = impAcum - impPrev;
+    impPrev = impAcum;
+
+    // Neto bolsillo: sueldo del mes (sin SAC) - aportes sobre sueldo - retención (si > 0)
+    const aporteMes = (sueldos[m] + sacs[m]) * pAp;
+    const netoMes   = sueldos[m] * (1 - pAp) - Math.max(0, retencion_m);
+
+    retenciones.push(retencion_m);
+    detalleM.push({
+      mes: MESES[m],
+      sueldo: sueldos[m], sac: sacs[m],
+      ingreso: sueldos[m] + sacs[m],
+      aporte: aporteMes,
+      gnsiAcum: baseAcum,
+      impAcum: impAcum,
+      retencion: retencion_m,
+      neto: netoMes,
+    });
+  }
+
+  // Total retenido = sum de retenciones positivas (puede diferir de impAnual
+  // si hay meses con devolución — en diciembre el empleador ajusta)
+  const totalRetenido = retenciones.reduce((a,b) => a + Math.max(0,b), 0);
+  const totalDevuelto = retenciones.reduce((a,b) => a + Math.min(0,b), 0);
+
+  let tramoIdx = null;
+  if (baseAnual > 0) {
+    for (let i = 0; i < A.ESCALA.length; i++) {
+      if (baseAnual <= A.ESCALA[i].h) { tramoIdx = i; break; }
+    }
+  }
+  const tEfectiva = (impAnual / bruto) * 100;
+  const tMarginal = tramoIdx !== null ? A.ESCALA[tramoIdx].p : 0;
+
+  // ── ESCALA ROWS ──────────────────────────────────────────
+  const escalaRows = A.ESCALA.map(t => {
+    const rango = t.h === Infinity ? `Más de ${fmt(t.d)}` : `${fmt(t.d)} &ndash; ${fmt(t.h)}`;
+    if (baseAnual <= t.d) return `<tr class="inactive"><td>${rango}</td><td>${t.p}%</td><td>—</td><td>—</td></tr>`;
+    const exc  = Math.min(baseAnual, t.h === Infinity ? baseAnual : t.h) - t.d;
+    const imp  = exc * t.p / 100;
+    const full = t.h !== Infinity && baseAnual >= t.h;
+    return `<tr class="${full?'full':'partial'}">
+      <td>${rango}${full?'':' ◀'}</td><td>${t.p}%</td><td>${fmt(exc)}</td><td>${fmt(imp)}</td>
+    </tr>`;
+  }).join('');
+
+  // ── DETALLE MENSUAL ROWS ──────────────────────────────────
+  const detRows = detalleM.map(d => {
+    if (d.ingreso === 0 && Math.abs(d.retencion) < 1) {
+      return `<tr class="d-gray">
+        <td>${d.mes}</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+      </tr>`;
+    }
+    const retClass = d.retencion > 0.5 ? 'd-red' : (d.retencion < -0.5 ? 'd-grn' : 'd-gray');
+    const retLabel = d.retencion > 0.5
+      ? `<span class="d-red">Retiene ${fmt(d.retencion)}</span>`
+      : (d.retencion < -0.5
+        ? `<span class="d-grn">Devuelve ${fmt(-d.retencion)}</span>`
+        : '<span class="d-gray">Sin retención</span>');
+    return `<tr>
+      <td><strong>${d.mes}</strong></td>
+      <td>${fmt(d.ingreso)}</td>
+      <td class="d-red">${fmt(-d.aporte)}</td>
+      <td>${fmt(d.gnsiAcum)}</td>
+      <td>${fmt(d.impAcum)}</td>
+      <td>${retLabel}</td>
+      <td class="d-grn">${fmt(d.neto)}</td>
+    </tr>`;
+  }).join('');
+
+  // ── RENDER ───────────────────────────────────────────────
+  const el = $('results');
+  el.style.display = 'block';
+
+  el.innerHTML = `
+  <!-- DETALLE MENSUAL -->
+  <div class="card">
+    <div class="card-title">📆 Retención mes a mes — Método acumulado RG 4003/2017</div>
+    <div class="det-table-wrap">
+    <table class="det-table">
+      <thead>
+        <tr>
+          <th>Mes</th>
+          <th>Ingreso del mes</th>
+          <th>Aportes</th>
+          <th>GNSI acumulada</th>
+          <th>Impuesto acumulado</th>
+          <th>Este mes</th>
+          <th>Neto bolsillo estimado</th>
+        </tr>
+      </thead>
+      <tbody>${detRows}</tbody>
+      <tfoot>
+        <tr>
+          <td>TOTAL AÑO</td>
+          <td>${fmt(bruto)}</td>
+          <td class="d-red">${fmt(-aTotal)}</td>
+          <td>${fmt(baseAnual)}</td>
+          <td>${fmt(impAnual)}</td>
+          <td class="d-red">${fmt(-impAnual)}</td>
+          <td class="d-grn">${fmt(salAn*(1-pAp) - impAnual)}</td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+    <p style="font-size:0.71rem;color:var(--gray-400);margin-top:0.5rem;">
+      GNSI = Ganancia Neta Sujeta a Impuesto acumulada hasta ese mes.
+      Impuesto acumulado = escala Art.94 sobre GNSI acumulada.
+      Retención del mes = Impuesto acumulado (mes) − Impuesto acumulado (mes anterior).
+      Neto bolsillo = sueldo del mes − aportes − retención (sin SAC).
+    </p>
+  </div>
+
+  <!-- PASO A PASO ANUAL -->
+  <div class="card">
+    <div class="card-title">📊 Detalle anual — base de cálculo</div>
+    <table class="calc-table">
+      <tr class="sec"><td colspan="2">Paso 1 — Ingresos brutos anuales</td></tr>
+      <tr class="pos"><td>Sueldos (suma 12 meses)</td><td>${fmt(salAn)}</td></tr>
+      ${sacAn > 0 ? `<tr class="pos"><td>SAC / Bonos (suma anual)</td><td>${fmt(sacAn)}</td></tr>` : ''}
+      <tr class="sub pos"><td><strong>Total ingresos brutos anuales</strong></td><td>${fmt(bruto)}</td></tr>
+
+      <tr class="sec"><td colspan="2">Paso 2 — Aportes previsionales</td></tr>
+      <tr class="neg"><td>Jubilación SIPA (${(pJubil*100).toFixed(0)}%)</td><td>${fmt(-bruto*pJubil)}</td></tr>
+      <tr class="neg"><td>Obra social (${(pOS*100).toFixed(0)}%)</td><td>${fmt(-bruto*pOS)}</td></tr>
+      <tr class="neg"><td>PAMI / INSSJP (${(pPAMI*100).toFixed(0)}%)</td><td>${fmt(-bruto*pPAMI)}</td></tr>
+      <tr class="sub"><td><strong>Ganancia neta (Art. 17 LIG)</strong></td><td>${fmt(gNeta)}</td></tr>
+
+      <tr class="sec"><td colspan="2">Paso 3 — Deducciones personales (Art. 30 — Ley 27.743)</td></tr>
+      <tr class="neg"><td>Ganancia no imponible — MNI</td><td>${fmt(-dMNI)}</td></tr>
+      <tr class="neg"><td>Deducción especial rel. dependencia (= MNI × 4,8)</td><td>${fmt(-dEsp)}</td></tr>
+      ${conyu  ? `<tr class="neg"><td>Cónyuge / unión convivencial</td><td>${fmt(-dConyu)}</td></tr>` : ''}
+      ${nHijos ? `<tr class="neg"><td>Hijos/as (${nHijos} × ${fmt(A.HIJO)})</td><td>${fmt(-dHijos)}</td></tr>` : ''}
+      ${nHInc  ? `<tr class="neg"><td>Hijos/as incapacitados (${nHInc} × ${fmt(A.HIJO_INC)})</td><td>${fmt(-dHInc)}</td></tr>` : ''}
+      <tr class="sub neg"><td>Subtotal deducciones personales</td><td>${fmt(-dPers)}</td></tr>
+
+      <tr class="sec"><td colspan="2">Paso 4 — Deducciones adicionales (Art. 85 — Ley 27.743)</td></tr>
+      ${dAlqAnnualCap > 0 ? `<tr class="neg"><td>
+        Alquiler: 40% de ${fmt(alqAn)}
+        ${alqCapHit ? `<span class="cap">⚠ El 40% (${fmt(dAlqRaw)}) supera el tope MNI → se aplica ${fmt(A.MNI)}</span>` : ''}
+      </td><td>${fmt(-dAlqAnnualCap)}</td></tr>` : ''}
+      ${dPrepAnnualCap > 0 ? `<tr class="neg"><td>
+        Medicina prepaga: ${fmt(prepAn)}
+        ${prepCapHit ? `<span class="cap">⚠ Supera el 5% ganancia neta (${fmt(gNeta*0.05)}) → tope aplicado</span>` : ''}
+      </td><td>${fmt(-dPrepAnnualCap)}</td></tr>` : ''}
+      ${dDomAnnualCap > 0 ? `<tr class="neg"><td>
+        Personal doméstico: ${fmt(domAn)}
+        ${domCapHit ? `<span class="cap">⚠ Supera 1 MNI → tope aplicado</span>` : ''}
+      </td><td>${fmt(-dDomAnnualCap)}</td></tr>` : ''}
+      ${dSegVAnnualCap > 0 ? `<tr class="neg"><td>
+        Seguro de vida: ${fmt(segVAn)}
+        ${segVCapHit ? `<span class="cap">⚠ Supera el tope (${fmt(A.SEG_VIDA_TOPE)}) → tope aplicado</span>` : ''}
+      </td><td>${fmt(-dSegVAnnualCap)}</td></tr>` : ''}
+      ${dSegRAnnualCap > 0 ? `<tr class="neg"><td>
+        Seguro de retiro privado: ${fmt(segRAn)}
+        ${segRCapHit ? `<span class="cap">⚠ Supera el tope (${fmt(A.SEG_VIDA_TOPE)}) → tope aplicado</span>` : ''}
+      </td><td>${fmt(-dSegRAnnualCap)}</td></tr>` : ''}
+      ${dHipAnnualCap > 0 ? `<tr class="neg"><td>
+        Intereses hipoteca 1ª vivienda: ${fmt(hipAn)}
+        ${hipCapHit ? `<span class="cap">⚠ Supera el tope nominal de ${fmt(A.HIP_TOPE)} → tope aplicado</span>` : ''}
+      </td><td>${fmt(-dHipAnnualCap)}</td></tr>` : ''}
+      ${dOtrsAnnualCap > 0 ? `<tr class="neg"><td>Otras deducciones (columna "Otros ded." de la tabla): ${fmt(otrsAn)}</td><td>${fmt(-dOtrsAnnualCap)}</td></tr>` : ''}
+      ${dOtras === 0 ? `<tr><td colspan="2" style="color:var(--gray-400);font-size:0.8rem;padding:0.6rem 0.4rem;">
+        Sin deducciones adicionales ingresadas.
+      </td></tr>` : `<tr class="sub neg"><td>Subtotal deducciones adicionales</td><td>${fmt(-dOtras)}</td></tr>`}
+
+      ${baseAnual > 0
+        ? `<tr class="total"><td><strong>Ganancia neta sujeta a impuesto (anual)</strong></td><td>${fmt(baseAnual)}</td></tr>`
+        : `<tr class="notax"><td>✅ GNSI anual</td><td>$0 — NO PAGA</td></tr>`
+      }
+    </table>
+  </div>
+
+  ${baseAnual > 0 ? `
+  <div class="card">
+    <div class="card-title">📈 Escala progresiva (Art. 94 LIG) — sobre GNSI anual</div>
+    <table class="scale-table">
+      <thead><tr><th>Tramo anual</th><th>Alícuota</th><th>Excedente gravado</th><th>Impuesto tramo</th></tr></thead>
+      <tbody>${escalaRows}</tbody>
+      <tfoot><tr><td colspan="2">Impuesto determinado anual</td><td></td><td>${fmt(impAnual)}</td></tr></tfoot>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">✅ Resultado final</div>
+    <div class="result-grid">
+      <div class="rbox"><div class="amt">${fmt(impAnual)}</div><div class="lbl">Impuesto determinado anual</div></div>
+      <div class="rbox"><div class="amt">${fmt(impAnual/12)}</div><div class="lbl">Retención promedio mensual</div></div>
+      <div class="rbox green"><div class="amt">${fmt(salAn*(1-pAp) - impAnual)}</div><div class="lbl">Neto bolsillo acumulado anual</div></div>
+    </div>
+    <div class="srow"><span>Total ingresos brutos anuales</span><span class="v">${fmt(bruto)}</span></div>
+    <div class="srow"><span>Total aportes (${(pAp*100).toFixed(0)}%)</span><span class="v" style="color:var(--red-dark)">${fmt(-aTotal)}</span></div>
+    <div class="srow"><span>Total deducciones</span><span class="v" style="color:var(--red-dark)">${fmt(-totalDed)}</span></div>
+    <div class="srow"><span>Impuesto a las Ganancias anual</span><span class="v" style="color:var(--red-dark)">${fmt(-impAnual)}</span></div>
+    <div class="srow net"><span>Neto bolsillo acumulado anual</span><span class="v">${fmt(salAn*(1-pAp) - impAnual)}</span></div>
+    <div class="srow"><span>Tasa efectiva (impuesto ÷ bruto)</span><span class="v">${pct(tEfectiva)}</span></div>
+    <div class="srow"><span>Tasa marginal</span><span class="v">${tMarginal}%</span></div>
+  </div>
+  ` : `
+  <div class="card">
+    <div class="no-tax-box">
+      <h3>✅ No pagás Ganancias</h3>
+      <p>Deducciones totales: <strong>${fmt(totalDed)}</strong></p>
+      <p>Ganancia neta: <strong>${fmt(gNeta)}</strong></p>
+      <p>Margen: <strong>${fmt(totalDed - gNeta)}</strong> por debajo del piso</p>
+      <p style="margin-top:0.8rem;font-size:0.8rem;">No corresponde retención del Impuesto a las Ganancias 4ª Categoría.</p>
+    </div>
+  </div>
+  `}
+
+  <div class="alert alert-warn">
+    <strong>Nota:</strong> Cálculo por método de acumulación RG 4003/2017.
+    Retención de cada mes = Impuesto(GNSI acumulada M) − Impuesto(GNSI acumulada M−1).
+    Valores oficiales ARCA H1 2026 — se actualizan en H2 con IPC enero–junio 2026.
+    La columna "Otros ded." acepta importes brutos pagados; para deducir honorarios médicos
+    ingresá el 40% del total pagado; para donaciones verificá el tope del 5% de la GN.
+    Resultado <strong>orientativo</strong> — no reemplaza liquidación del empleador ni asesoría contable.
+  </div>
+  `;
+
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>

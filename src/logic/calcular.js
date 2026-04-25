@@ -1,0 +1,174 @@
+/**
+ * Orquestador principal del cálculo.
+ * Toma la configuración y los datos mensuales, devuelve todos los resultados.
+ */
+import { A } from '../constants/arca2026.js';
+import { calcularIngresos, totalesAnualesDed } from './ingresos.js';
+import { calcularDeduccionesPersonales, calcularCapsAnuales } from './deducciones.js';
+import { calcularImpuesto, encontrarTramo, detalleEscala } from './impuesto.js';
+import { calcularRG4003 } from './rg4003.js';
+
+/**
+ * SAC auto-cálculo (RG 4003, Art.16):
+ * Cada mes agrega la doceava parte de la mejor remuneración acumulada
+ * hasta ese mes en el semestre correspondiente.
+ *
+ * sac_mes[M] = max(sueldos[0..M]) / 12  (H1)
+ * sac_mes[M] = max(sueldos[6..M]) / 12  (H2)
+ *
+ * Con sueldo constante: 6 meses × max/12 = max/2 (SAC correcto).
+ * Con aumento mid-semestre: los meses anteriores usan su propio max.
+ *
+ * Si el usuario ingresó SAC manualmente en junio/diciembre, se respeta.
+ * La mejor remuneración se calcula sobre el bruto total del mes: sueldos[m] + vacs[m].
+ * Si ese mes se cobraron vacaciones, el total supera el sueldo declarado y pasa
+ * a ser la nueva mejor remuneración para SAC desde ese mes en adelante.
+ */
+function autoCalcSAC(sueldos, vacs, sacsOrig) {
+  const sacs = [...sacsOrig];
+  const autoCalc = { junio: false, diciembre: false };
+
+  // H1: índices 0–5
+  if (sacs[5] === 0) {
+    let mejorH1 = 0;
+    for (let m = 0; m < 6; m++) {
+      mejorH1 = Math.max(mejorH1, sueldos[m] + vacs[m]);
+      sacs[m] += mejorH1 / 12;
+    }
+    if (mejorH1 > 0) autoCalc.junio = true;
+  }
+
+  // H2: índices 6–11
+  if (sacs[11] === 0) {
+    let mejorH2 = 0;
+    for (let m = 6; m < 12; m++) {
+      mejorH2 = Math.max(mejorH2, sueldos[m] + vacs[m]);
+      sacs[m] += mejorH2 / 12;
+    }
+    if (mejorH2 > 0) autoCalc.diciembre = true;
+  }
+
+  return { sacs, autoCalc };
+}
+
+/**
+ * @param {Object} config
+ * @param {number} config.pJubilacion  - % jubilación (0–100)
+ * @param {number} config.pObraSocial  - % obra social (0–100)
+ * @param {number} config.pPAMI        - % PAMI (0–100)
+ * @param {number} config.conyuge      - 0 o 1
+ * @param {number} config.hijos        - entero >= 0
+ * @param {number} config.hijosInc     - entero >= 0
+ *
+ * @param {Array}  mesData - array[12] de { s, sac, vac, alq, prep, dom, segv, segr, hip, otros }
+ *
+ * @returns {Object} resultado completo
+ */
+export function calcular(config, mesData, overrides = {}) {
+  const { pJubilacion, pObraSocial, pPAMI, conyuge, hijos, hijosInc } = config;
+
+  const sueldos  = mesData.map(m => m.s   || 0);
+  const sacsOrig = mesData.map(m => m.sac || 0);
+  // Haberes vacacionales = sueldo del mes ÷ 25 × días de vacaciones
+  const diasVacs = mesData.map(m => m.diasVac || 0);
+  const vacs     = sueldos.map((s, i) => s / 25 * diasVacs[i]);
+  const alqs     = mesData.map(m => m.alq  || 0);
+  const preps    = mesData.map(m => m.prep || 0);
+  const doms     = mesData.map(m => m.dom  || 0);
+  const segvs    = mesData.map(m => m.segv || 0);
+  const segrs    = mesData.map(m => m.segr || 0);
+  const hips     = mesData.map(m => m.hip  || 0);
+  const otrs40s  = mesData.map(m => m.otros40  || 0);
+  const otrs100s = mesData.map(m => m.otros100 || 0);
+
+  // Ingresos — aplicar overrides de aportes
+  const jubilacion = (overrides.jubilacion ? 0 : pJubilacion) / 100;
+  const obraSocial = (overrides.obraSocial ? 0 : pObraSocial) / 100;
+  const pami       = (overrides.pami       ? 0 : pPAMI)       / 100;
+
+  // vacImporte: importe vacacional ya calculado externamente (cobra adelantado)
+  // Tiene precedencia sobre diasVac si está presente y > 0
+  const vacsFinales = mesData.map((m, i) =>
+    m.vacImporte != null ? m.vacImporte : vacs[i]
+  );
+
+  // SAC: auto-calcular usando bruto total del mes (sueldo + vacaciones)
+  // para capturar meses donde las vacaciones elevan la mejor remuneración
+  const { sacs, autoCalc } = autoCalcSAC(sueldos, vacsFinales, sacsOrig);
+
+  const { salAn, sacAn, vacAn, bruto, pAp, aTotal, gNeta } =
+    calcularIngresos(sueldos, sacs, vacsFinales, { jubilacion, obraSocial, pami });
+
+  if (bruto <= 0) return null;
+
+  // Deducciones personales — aplicar overrides
+  const dedPersRaw = calcularDeduccionesPersonales({
+    conyuge:   overrides.conyuge   ? 0 : conyuge,
+    hijos:     overrides.hijos     ? 0 : hijos,
+    hijosInc:  overrides.hijosInc  ? 0 : hijosInc,
+  });
+  const dedPers = {
+    ...dedPersRaw,
+    mni:   overrides.mni ? 0 : dedPersRaw.mni,
+    esp:   overrides.esp ? 0 : dedPersRaw.esp,
+    total: (overrides.mni ? 0 : dedPersRaw.mni)
+         + (overrides.esp ? 0 : dedPersRaw.esp)
+         + dedPersRaw.conyuge + dedPersRaw.hijos + dedPersRaw.hijosInc,
+  };
+
+  // Totales anuales columnas de deducciones
+  const anDed = totalesAnualesDed(mesData);
+
+  // Caps anuales Art.85
+  const caps = calcularCapsAnuales(anDed, gNeta);
+
+  // Base imponible anual y escala
+  const baseAnual = Math.max(0, gNeta - dedPers.total - caps.total);
+  const impAnual  = calcularImpuesto(baseAnual);
+  const escala    = detalleEscala(baseAnual);
+
+  // RG 4003: detalle mensual
+  const detalleM = calcularRG4003({
+    sueldos, sacs, vacs: vacsFinales, alqs, preps, doms, segvs, segrs, hips,
+    otrs40s, otrs100s,
+    pAp, dPers: dedPers.total, caps,
+    excluirEspAp2: !!overrides.dedEspAp2,
+  });
+
+  // Totales retenciones
+  const totalRetenido = detalleM.reduce((a, d) => a + Math.max(0, d.retencion), 0);
+  const totalDevuelto = detalleM.reduce((a, d) => a + Math.min(0, d.retencion), 0);
+
+  // Para periodos parciales (hastaHoy), usar el acumulado del último mes activo
+  // en lugar del cálculo anual completo (que usa deducciones anuales contra ingresos parciales)
+  const lastActiveIdx = detalleM.reduce((last, d, i) => d.ingreso > 0 ? i : last, -1);
+  const impEfectivo  = lastActiveIdx >= 0 ? detalleM[lastActiveIdx].impAcum  : impAnual;
+  const baseEfectivo = lastActiveIdx >= 0 ? detalleM[lastActiveIdx].gnsiAcum : baseAnual;
+  const tramoIdx     = encontrarTramo(baseEfectivo);
+
+  // Tasas
+  const tEfectiva = bruto > 0 ? (impEfectivo / bruto) * 100 : 0;
+
+  return {
+    // Ingresos
+    salAn, sacAn, vacAn, bruto, pAp, aTotal, gNeta,
+    // SAC auto-cálculo
+    sacAutoCalc: autoCalc,
+    sacUsados: sacs,
+    diasVacs,
+    vacs,
+    // Deducciones personales
+    dedPers,
+    // Caps Art.85
+    caps, anDed,
+    // Base y escala anuales (efectivo = último mes activo para periodos parciales)
+    baseAnual: baseEfectivo, impAnual: impEfectivo, escala, tramoIdx,
+    // Tasas
+    tEfectiva,
+    tMarginal: tramoIdx !== null ? A.ESCALA[tramoIdx].p : 0,
+    // Detalle mensual RG 4003
+    detalleM, totalRetenido, totalDevuelto,
+    // Config usada
+    config: { pJubilacion, pObraSocial, pPAMI, conyuge, hijos, hijosInc },
+  };
+}
