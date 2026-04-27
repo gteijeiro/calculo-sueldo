@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "periodo": "2026-H1",
+    "fuente": "RG ARCA / Ley 27.743",
+    "actualizacion": "2026-01-01"
+  },
+  "A": {
+    "MNI":            5151802.50,
+    "DED_ESP":       24728652.02,
+    "CONYUGE":        4851964.66,
+    "HIJO":           2446863.48,
+    "HIJO_INC":       4893726.96,
+    "SEG_VIDA_TOPE":   753472.14,
+    "HIP_TOPE":         20000.00,
+    "SEPELIO_TOPE":       996.23,
+    "ESCALA": [
+      { "d":           0,          "h":  2000030.09, "cf":           0,    "p":  5 },
+      { "d":  2000030.09,          "h":  4000060.17, "cf":     100001.50,  "p":  9 },
+      { "d":  4000060.17,          "h":  6000090.26, "cf":     280004.21,  "p": 12 },
+      { "d":  6000090.26,          "h":  9000135.40, "cf":     520007.82,  "p": 15 },
+      { "d":  9000135.40,          "h": 18000270.80, "cf":     970014.59,  "p": 19 },
+      { "d": 18000270.80,          "h": 27000406.20, "cf":    2680040.32,  "p": 23 },
+      { "d": 27000406.20,          "h": 40500609.30, "cf":    4750071.46,  "p": 27 },
+      { "d": 40500609.30,          "h": 60750913.96, "cf":    8395126.30,  "p": 31 },
+      { "d": 60750913.96,          "h": null,         "cf":   14672720.74, "p": 35 }
+    ]
+  },
+  "MESES": [
+    "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+    "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+  ],
+  "COLS": ["s","sac","diasVac","alq","prep","dom","segv","segr","hip","otros"],
+  "ESCENARIOS_PISO": [
+    { "lbl": "Soltero/a sin cargas",   "c": 0, "h": 0, "i": 0 },
+    { "lbl": "Soltero/a, 1 hijo/a",    "c": 0, "h": 1, "i": 0 },
+    { "lbl": "Soltero/a, 2 hijos/as",  "c": 0, "h": 2, "i": 0 },
+    { "lbl": "Casado/a sin hijos",      "c": 1, "h": 0, "i": 0 },
+    { "lbl": "Casado/a, 1 hijo/a",      "c": 1, "h": 1, "i": 0 },
+    { "lbl": "Casado/a, 2 hijos/as",    "c": 1, "h": 2, "i": 0 },
+    { "lbl": "Casado/a, 3 hijos/as",    "c": 1, "h": 3, "i": 0 }
+  ],
+  "DIAS_MES_2026": [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+}

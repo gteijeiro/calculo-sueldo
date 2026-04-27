@@ -1,4 +1,4 @@
-const CACHE = 'arca-v1';
+const CACHE = 'arca-v2';
 const STATIC = ['/'];
 
 self.addEventListener('install', e => {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CONVENIOS_DETALLE } from '../constants/convenios.js';
+import JsonMapBadge from './JsonMapBadge.jsx';
 
 const CONVENIOS = [
   { id: 'general',      label: 'Sin convenio / General',                  jub: 11, os: 3, pami: 3, nota: null },
@@ -25,7 +26,7 @@ function fmtPesos(n) {
   return '$ ' + Math.round(n).toLocaleString('es-AR');
 }
 
-export default function DatosForm({ config, onChange, onLoadSueldo }) {
+export default function DatosForm({ config, onChange, onLoadSueldo, showJsonMap = false }) {
   const [showDetalle, setShowDetalle] = useState(false);
   const [cargoUsado, setCargoUsado] = useState(null);
   const set = (key, val) => onChange({ ...config, [key]: val });
@@ -250,16 +251,19 @@ export default function DatosForm({ config, onChange, onLoadSueldo }) {
           <label>Jubilación SIPA</label>
           <input type="number" value={config.pJubilacion} min="0" max="30" step="0.5"
             onChange={e => onChange({ ...config, pJubilacion: parseFloat(e.target.value) || 0, convenio: 'custom' })} />
+          <JsonMapBadge visible={showJsonMap} path="recibo_sueldo.deducciones.jubilacion" variable="pJubilacion" defaultValue={11} ley="Ley 24.241 Art.11" formulaId="jubilacion_sipa" />
         </div>
         <div className="form-group">
           <label>Obra social</label>
           <input type="number" value={config.pObraSocial} min="0" max="15" step="0.5"
             onChange={e => onChange({ ...config, pObraSocial: parseFloat(e.target.value) || 0, convenio: 'custom' })} />
+          <JsonMapBadge visible={showJsonMap} path="recibo_sueldo.deducciones.obra_social" variable="pObraSocial" defaultValue={3} ley="Ley 23.660" formulaId="obra_social" />
         </div>
         <div className="form-group">
           <label>PAMI / INSSJP</label>
           <input type="number" value={config.pPAMI} min="0" max="10" step="0.5"
             onChange={e => onChange({ ...config, pPAMI: parseFloat(e.target.value) || 0, convenio: 'custom' })} />
+          <JsonMapBadge visible={showJsonMap} path="recibo_sueldo.deducciones.pami" variable="pPAMI" defaultValue={3} ley="Ley 19.032" formulaId="pami_inssjp" />
         </div>
       </div>
 
@@ -275,6 +279,7 @@ export default function DatosForm({ config, onChange, onLoadSueldo }) {
             <option value={0}>No / tiene ingresos propios</option>
             <option value={1}>Sí — a cargo sin ingresos</option>
           </select>
+          <JsonMapBadge visible={showJsonMap} path="recibo_sueldo.cargas_familia.conyuge" variable="conyuge" defaultValue={0} ley="Ley 27.743 Art.30 b) 1" />
         </div>
         <div className="form-group">
           <label>
@@ -283,6 +288,7 @@ export default function DatosForm({ config, onChange, onLoadSueldo }) {
           </label>
           <input type="number" value={config.hijos} min="0" max="20" step="1"
             onChange={e => set('hijos', parseInt(e.target.value) || 0)} />
+          <JsonMapBadge visible={showJsonMap} path="recibo_sueldo.cargas_familia.hijos" variable="hijos" defaultValue={0} ley="Ley 27.743 Art.30 b) 2" />
         </div>
         <div className="form-group">
           <label>
@@ -291,6 +297,7 @@ export default function DatosForm({ config, onChange, onLoadSueldo }) {
           </label>
           <input type="number" value={config.hijosInc} min="0" max="10" step="1"
             onChange={e => set('hijosInc', parseInt(e.target.value) || 0)} />
+          <JsonMapBadge visible={showJsonMap} path="recibo_sueldo.cargas_familia.hijos_incapacitados" variable="hijosInc" defaultValue={0} ley="Ley 27.743 Art.30 b) 2 inc." />
         </div>
       </div>
     </div>

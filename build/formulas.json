@@ -1,0 +1,101 @@
+[
+  { "id": "sueldo_proporcional", "label": "Sueldo proporcional (ingreso/egreso)", "expresion": "sueldoBase * diasTrabajados / diasHabiles", "ley": "LCT Art.92 bis",
+    "tags": { "sueldoBase": {"tipo":"input","label":"Sueldo base mensual"}, "diasTrabajados": {"tipo":"input","label":"Días trabajados"}, "diasHabiles": {"tipo":"input","label":"Días hábiles del mes","defecto":30} } },
+
+  { "id": "sueldo_por_dia", "label": "Sueldo por día", "expresion": "sueldoBase / divisorSueldo", "ley": "LCT Art.92 bis",
+    "tags": { "sueldoBase": {"tipo":"input","label":"Sueldo base mensual"}, "divisorSueldo": {"tipo":"input","label":"Divisor sueldo","defecto":30} } },
+
+  { "id": "valor_hora", "label": "Valor hora normal", "expresion": "sueldoBase / (diasHabiles * horasDiarias)", "ley": "LCT Art.155",
+    "tags": { "sueldoBase": {"tipo":"input","label":"Sueldo base mensual"}, "diasHabiles": {"tipo":"input","label":"Días hábiles del mes","defecto":30}, "horasDiarias": {"tipo":"constante","valor":8,"label":"Horas de jornada diaria (LCT Art.196)"} } },
+
+  { "id": "horas_extras_50", "label": "Horas extras al 50%", "expresion": "valorHora * factorHE50 * cantHoras", "ley": "LCT Art.201",
+    "tags": { "valorHora": {"tipo":"input","label":"Valor hora normal"}, "factorHE50": {"tipo":"constante","valor":1.5,"label":"Factor hora extra 50%"}, "cantHoras": {"tipo":"input","label":"Cantidad de horas extras"} } },
+
+  { "id": "horas_extras_100", "label": "Horas extras al 100%", "expresion": "valorHora * factorHE100 * cantHoras", "ley": "LCT Art.201",
+    "tags": { "valorHora": {"tipo":"input","label":"Valor hora normal"}, "factorHE100": {"tipo":"constante","valor":2.0,"label":"Factor hora extra 100%"}, "cantHoras": {"tipo":"input","label":"Cantidad de horas extras"} } },
+
+  { "id": "adicional_antiguedad", "label": "Adicional por antigüedad", "expresion": "sueldoBase * pctAntiguedad", "ley": "LCT Art.208 / CCT",
+    "tags": { "sueldoBase": {"tipo":"input","label":"Sueldo base mensual"}, "pctAntiguedad": {"tipo":"input","label":"Porcentaje por antigüedad (fracción)"} } },
+
+  { "id": "adicional_presentismo", "label": "Adicional por presentismo", "expresion": "sueldoBase * pctPresentismo", "ley": "CCT",
+    "tags": { "sueldoBase": {"tipo":"input","label":"Sueldo base mensual"}, "pctPresentismo": {"tipo":"input","label":"Porcentaje presentismo (fracción)","defecto":0} } },
+
+
+  { "id": "sac_mensual", "label": "SAC acumulación mensual", "expresion": "mejorRemuneracion / mesesAnio", "ley": "RG 4003 Art.16",
+    "tags": { "mejorRemuneracion": {"tipo":"input","label":"Mejor remuneración del semestre hasta el mes"}, "mesesAnio": {"tipo":"constante","valor":12,"label":"Meses del año"} } },
+
+  { "id": "sac_semestral", "label": "SAC semestral", "expresion": "mejorRemuneracion / semestres", "ley": "Ley 23.041",
+    "tags": { "mejorRemuneracion": {"tipo":"input","label":"Mejor remuneración del semestre"}, "semestres": {"tipo":"constante","valor":2,"label":"Semestres del año"} } },
+
+  { "id": "remuneracion_bruta", "label": "Remuneración bruta total", "expresion": "sueldo + sac + vacacional + extras + adicionales", "ley": "LCT Art.103",
+    "tags": { "sueldo": {"tipo":"input","label":"Sueldo del mes","defecto":0}, "sac": {"tipo":"input","label":"SAC del mes","defecto":0}, "vacacional": {"tipo":"input","label":"Haber vacacional del mes","defecto":0}, "extras": {"tipo":"input","label":"Horas extras","defecto":0}, "adicionales": {"tipo":"input","label":"Adicionales","defecto":0} } },
+
+  { "id": "cuota_sindical", "label": "Cuota sindical (CCT)", "expresion": "base * pctSindical", "ley": "CCT / Ley 23.551",
+    "tags": { "base": {"tipo":"input","label":"Remuneración bruta"}, "pctSindical": {"tipo":"input","label":"Porcentaje sindical (fracción)","defecto":0.02} } },
+
+  { "id": "fondo_cese_laboral", "label": "Fondo de cese laboral — aporte empleado", "expresion": "base * pctFondoCese", "ley": "Ley 22.250 / CCT UOCRA",
+    "tags": { "base": {"tipo":"input","label":"Remuneración bruta"}, "pctFondoCese": {"tipo":"constante","valor":0.02,"label":"Aporte empleado 2% (Ley 22.250)"} } },
+
+  { "id": "tasa_aportes", "label": "Tasa total de aportes previsionales", "expresion": "pJubilacion + pObraSocial + pPAMI", "ley": "Ley 24.241 / 23.660 / 19.032",
+    "tags": { "pJubilacion": {"tipo":"input","label":"Porcentaje jubilación (fracción)","defecto":0.11}, "pObraSocial": {"tipo":"input","label":"Porcentaje obra social (fracción)","defecto":0.03}, "pPAMI": {"tipo":"input","label":"Porcentaje PAMI (fracción)","defecto":0.03} } },
+
+  { "id": "total_aportes", "label": "Total aportes previsionales", "expresion": "bruto * pAp", "ley": "Ley 24.241 / 23.660 / 19.032",
+    "tags": { "bruto": {"tipo":"input","label":"Remuneración bruta"}, "pAp": {"tipo":"input","label":"Tasa total de aportes (fracción)"} } },
+
+  { "id": "ganancia_neta", "label": "Ganancia neta (luego de aportes)", "expresion": "bruto * (1 - pAp)", "ley": "Ley 27.743 Art.30",
+    "tags": { "bruto": {"tipo":"input","label":"Remuneración bruta"}, "pAp": {"tipo":"input","label":"Tasa total de aportes (fracción)"} } },
+
+  { "id": "deduccion_familiar", "label": "Deducción por carga de familia", "expresion": "cantidad * tasaDeduccion", "ley": "Ley 27.743 Art.30 b)",
+    "tags": { "cantidad": {"tipo":"input","label":"Cantidad de cargas"}, "tasaDeduccion": {"tipo":"input","label":"Importe anual por carga"} } },
+
+  { "id": "total_deducciones_personales", "label": "Total deducciones personales anuales (Art.30)", "expresion": "mni + esp + conyuge + hijos + hijosInc", "ley": "Ley 27.743 Art.30",
+    "tags": { "mni": {"tipo":"input","label":"MNI","defecto":0}, "esp": {"tipo":"input","label":"Deducción Especial","defecto":0}, "conyuge": {"tipo":"input","label":"Deducción cónyuge","defecto":0}, "hijos": {"tipo":"input","label":"Deducción hijos","defecto":0}, "hijosInc": {"tipo":"input","label":"Deducción hijos incap.","defecto":0} } },
+
+  { "id": "prorrateo_deduccion_personal", "label": "Deducción personal acumulada al mes M", "expresion": "dedAnual * (mes + 1) / mesesAnio", "ley": "RG 4003/2017",
+    "tags": { "dedAnual": {"tipo":"input","label":"Deducción personal anual total"}, "mes": {"tipo":"input","label":"Índice del mes (0=enero)"}, "mesesAnio": {"tipo":"constante","valor":12,"label":"Meses del año"} } },
+
+  { "id": "ded_esp_ap2", "label": "Deducción Especial Ap.2 mensual (RG 5531/2024)", "expresion": "dPersAcum / mesesAnio", "ley": "RG 5531/2024 — Art.30 c) Ap.2",
+    "tags": { "dPersAcum": {"tipo":"input","label":"Deducción personal acumulada hasta el mes"}, "mesesAnio": {"tipo":"constante","valor":12,"label":"Meses del año"} } },
+
+  { "id": "deduccion_mensual_con_cap", "label": "Deducción mensual con cap anual", "expresion": "Math.max(0, Math.min(importeMes * pctDeducible, capRestante))", "ley": "Ley 27.743 Art.85",
+    "tags": { "importeMes": {"tipo":"input","label":"Importe del mes"}, "pctDeducible": {"tipo":"input","label":"Porcentaje deducible","defecto":1}, "capRestante": {"tipo":"input","label":"Cap anual restante"} } },
+
+  { "id": "cap_alquiler", "label": "Cap anual alquiler (40%, tope MNI)", "expresion": "Math.min(alquilerAnual * pctDeducible, MNI)", "ley": "Ley 27.743 Art.85 a)",
+    "tags": { "alquilerAnual": {"tipo":"input","label":"Alquiler pagado en el año"}, "pctDeducible": {"tipo":"constante","valor":0.40,"label":"40% deducible"}, "MNI": {"tipo":"input","label":"Mínimo No Imponible"} } },
+
+  { "id": "cap_prepaga", "label": "Cap anual prepaga (100%, tope 5% GN)", "expresion": "Math.min(prepagaAnual, gananciaNeta * pctTopeGN)", "ley": "Ley 27.743 Art.85 b)",
+    "tags": { "prepagaAnual": {"tipo":"input","label":"Prepaga pagada en el año"}, "gananciaNeta": {"tipo":"input","label":"Ganancia neta anual"}, "pctTopeGN": {"tipo":"constante","valor":0.05,"label":"Tope 5% ganancia neta"} } },
+
+  { "id": "cap_con_tope", "label": "Cap anual con tope fijo (100%)", "expresion": "Math.min(importeAnual, tope)", "ley": "Ley 27.743 Art.85",
+    "tags": { "importeAnual": {"tipo":"input","label":"Importe anual pagado"}, "tope": {"tipo":"input","label":"Tope anual máximo"} } },
+
+  { "id": "cap_con_porcentaje", "label": "Cap con porcentaje sobre importe bruto", "expresion": "importeAnual * pctDeducible", "ley": "Ley 27.743 Art.85",
+    "tags": { "importeAnual": {"tipo":"input","label":"Importe anual bruto"}, "pctDeducible": {"tipo":"input","label":"Porcentaje deducible"} } },
+
+  { "id": "piso_sueldo", "label": "Piso sueldo bruto mensual para pagar Ganancias", "expresion": "dedAnual / (mesesAnio * (1 - pAp))", "ley": "Ley 27.743 Art.30 / Art.94",
+    "tags": { "dedAnual": {"tipo":"input","label":"Deducciones personales anuales Art.30"}, "mesesAnio": {"tipo":"constante","valor":12,"label":"Meses del año"}, "pAp": {"tipo":"input","label":"Tasa total aportes (fracción)","defecto":0.17} } },
+
+  { "id": "impuesto_por_tramo", "label": "Impuesto en un tramo de la escala (Art.94)", "expresion": "cf + (gnsi - d) * p / 100", "ley": "Ley 27.743 Art.94",
+    "tags": { "cf": {"tipo":"input","label":"Cuota fija del tramo"}, "gnsi": {"tipo":"input","label":"Base imponible (GNSI)"}, "d": {"tipo":"input","label":"Límite inferior del tramo"}, "p": {"tipo":"input","label":"Alícuota del tramo (%)"} } },
+
+  { "id": "excedente_en_tramo", "label": "Excedente de GNSI dentro del tramo", "expresion": "Math.min(gnsi, techo) - d", "ley": "Ley 27.743 Art.94",
+    "tags": { "gnsi": {"tipo":"input","label":"Base imponible (GNSI)"}, "techo": {"tipo":"input","label":"Límite superior del tramo"}, "d": {"tipo":"input","label":"Límite inferior del tramo"} } },
+
+  { "id": "impuesto_excedente", "label": "Impuesto generado por excedente en tramo", "expresion": "excedente * p / 100", "ley": "Ley 27.743 Art.94",
+    "tags": { "excedente": {"tipo":"input","label":"Excedente dentro del tramo"}, "p": {"tipo":"input","label":"Alícuota del tramo (%)"} } },
+
+  { "id": "base_imponible", "label": "Base imponible (GNSI)", "expresion": "Math.max(0, gNeta - dedTotal)", "ley": "Ley 27.743 Art.94",
+    "tags": { "gNeta": {"tipo":"input","label":"Ganancia neta acumulada"}, "dedTotal": {"tipo":"input","label":"Deducciones totales acumuladas"} } },
+
+  { "id": "retencion_mensual", "label": "Retención del mes (método acumulado RG 4003)", "expresion": "impAcum - impPrev", "ley": "RG 4003/2017",
+    "tags": { "impAcum": {"tipo":"input","label":"Impuesto acumulado hasta este mes"}, "impPrev": {"tipo":"input","label":"Impuesto acumulado mes anterior","defecto":0} } },
+
+  { "id": "neto_mes", "label": "Neto bolsillo estimado del mes", "expresion": "(sueldo + vac) * (1 - pAp) - Math.max(0, retencion)", "ley": "RG 4003/2017",
+    "tags": { "sueldo": {"tipo":"input","label":"Sueldo del mes"}, "vac": {"tipo":"input","label":"Haber vacacional del mes","defecto":0}, "pAp": {"tipo":"input","label":"Tasa aportes (fracción)"}, "retencion": {"tipo":"input","label":"Retención del mes","defecto":0} } },
+
+  { "id": "neto_a_pagar", "label": "Neto a pagar (sin retención Ganancias)", "expresion": "bruto - totalAportes", "ley": "LCT Art.103",
+    "tags": { "bruto": {"tipo":"input","label":"Remuneración bruta del mes"}, "totalAportes": {"tipo":"input","label":"Total aportes del mes"} } },
+
+  { "id": "neto_final", "label": "Neto final (descontando retención Ganancias)", "expresion": "bruto - totalAportes - retencion", "ley": "LCT Art.103 / RG 4003",
+    "tags": { "bruto": {"tipo":"input","label":"Remuneración bruta del mes"}, "totalAportes": {"tipo":"input","label":"Total aportes del mes"}, "retencion": {"tipo":"input","label":"Retención Ganancias del mes","defecto":0} } }
+]

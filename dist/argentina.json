@@ -1,0 +1,165 @@
+{
+  "pais": "argentina",
+  "recibo_sueldo": {
+    "sueldo_bruto": {
+      "label": "Sueldo Bruto",
+      "tipo": "HABER",
+      "remunerativo": true,
+      "variable": "sueldoBase",
+      "default": 0,
+      "ley": "LCT Art.103"
+    },
+    "deducciones": {
+      "jubilacion": {
+        "label": "Jubilación SIPA",
+        "tipo": "DEDUCCION",
+        "variable": "pJubilacion",
+        "default": 11,
+        "unidad": "%",
+        "ley": "Ley 24.241 Art.11",
+        "formula": {
+          "id": "jubilacion_sipa",
+          "expresion": "sueldoBase * porcentaje",
+          "tags": {
+            "sueldoBase": { "tipo": "input", "label": "Sueldo bruto del mes" },
+            "porcentaje": { "tipo": "input", "label": "Porcentaje como fracción (ej: 0.11)" }
+          }
+        }
+      },
+      "obra_social": {
+        "label": "Obra Social",
+        "tipo": "DEDUCCION",
+        "variable": "pObraSocial",
+        "default": 3,
+        "unidad": "%",
+        "ley": "Ley 23.660",
+        "formula": {
+          "id": "obra_social",
+          "expresion": "sueldoBase * porcentaje",
+          "tags": {
+            "sueldoBase": { "tipo": "input", "label": "Sueldo bruto del mes" },
+            "porcentaje": { "tipo": "input", "label": "Porcentaje como fracción (ej: 0.03)" }
+          }
+        }
+      },
+      "pami": {
+        "label": "PAMI / INSSJP",
+        "tipo": "DEDUCCION",
+        "variable": "pPAMI",
+        "default": 3,
+        "unidad": "%",
+        "ley": "Ley 19.032",
+        "formula": {
+          "id": "pami_inssjp",
+          "expresion": "sueldoBase * porcentaje",
+          "tags": {
+            "sueldoBase": { "tipo": "input", "label": "Sueldo bruto del mes" },
+            "porcentaje": { "tipo": "input", "label": "Porcentaje como fracción (ej: 0.03)" }
+          }
+        }
+      }
+    },
+    "cargas_familia": {
+      "conyuge": {
+        "label": "Cónyuge / unión convivencial a cargo",
+        "variable": "conyuge",
+        "default": 0,
+        "hint": "Sin ingresos propios o menores al MNI",
+        "ley": "Ley 27.743 Art.30 b) 1"
+      },
+      "hijos": {
+        "label": "Hijos/as menores de 18 años",
+        "variable": "hijos",
+        "default": 0,
+        "hint": "Cantidad",
+        "ley": "Ley 27.743 Art.30 b) 2"
+      },
+      "hijos_incapacitados": {
+        "label": "Hijos/as incapacitados para el trabajo",
+        "variable": "hijosInc",
+        "default": 0,
+        "hint": "Sin límite de edad",
+        "ley": "Ley 27.743 Art.30 b) 2 inc."
+      }
+    }
+  },
+  "vacaciones": {
+    "tiene": {
+      "label": "Tomé vacaciones en 2026",
+      "variable": "tiene",
+      "default": false,
+      "tipo": "boolean",
+      "ley": "LCT Art.150"
+    },
+    "cobrado_por_adelantado": {
+      "label": "Las vacaciones se cobran por adelantado",
+      "variable": "cobradoPorAdelantado",
+      "default": true,
+      "tipo": "boolean",
+      "hint": "Todo el período cobrado en el mes que comienzan"
+    },
+    "divisor_sueldo": {
+      "label": "Divisor para reducción de sueldo",
+      "variable": "divisorSueldo",
+      "default": 30,
+      "tipo": "select",
+      "hint": "sueldo ÷ divisor × días de vac.",
+      "opciones": [
+        { "valor": 30,    "label": "30 (estándar)" },
+        { "valor": "mes", "label": "Días reales del mes" }
+      ]
+    },
+    "fecha_inicio": {
+      "label": "Fecha de inicio",
+      "variable": "fechaInicio",
+      "default": "2026-01-01",
+      "tipo": "date",
+      "min": "2026-01-01",
+      "max": "2026-12-31"
+    },
+    "cant_dias": {
+      "label": "Días de vacaciones",
+      "variable": "cantDias",
+      "default": 14,
+      "tipo": "number",
+      "min": 1,
+      "max": 35,
+      "hint": "Días corridos (LCT Art.150)",
+      "ley": "LCT Art.150"
+    },
+    "formulas": {
+      "dia_vacacional": {
+        "id": "dia_vacacional",
+        "label": "Valor de un día vacacional",
+        "expresion": "sueldoBase / divisorVacacional",
+        "ley": "LCT Art.155",
+        "tags": {
+          "sueldoBase":        { "tipo": "input",     "label": "Sueldo base mensual" },
+          "divisorVacacional": { "tipo": "constante", "valor": 25, "label": "Divisor legal vacacional (LCT Art.155)" }
+        }
+      },
+      "haber_vacacional": {
+        "id": "haber_vacacional",
+        "label": "Haber vacacional del mes",
+        "expresion": "(sueldoBase / divisorVacacional) * diasEnMes",
+        "ley": "LCT Art.155",
+        "tags": {
+          "sueldoBase":        { "tipo": "input",     "label": "Sueldo base mensual" },
+          "divisorVacacional": { "tipo": "constante", "valor": 25, "label": "Divisor legal vacacional (LCT Art.155)" },
+          "diasEnMes":         { "tipo": "input",     "label": "Días de vacación en el mes" }
+        }
+      },
+      "reduccion_sueldo_vacaciones": {
+        "id": "reduccion_sueldo_vacaciones",
+        "label": "Sueldo reducido por días de vacación",
+        "expresion": "sueldoBase - (sueldoBase / divisorSueldo) * diasVacacion",
+        "ley": "LCT Art.155",
+        "tags": {
+          "sueldoBase":    { "tipo": "input", "label": "Sueldo base mensual" },
+          "divisorSueldo": { "tipo": "input", "label": "Divisor sueldo", "defecto": 30 },
+          "diasVacacion":  { "tipo": "input", "label": "Días de vacación en el mes" }
+        }
+      }
+    }
+  }
+}

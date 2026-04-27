@@ -7,19 +7,21 @@ function fmt(n) {
   return '$ ' + Math.round(n).toLocaleString('es-AR');
 }
 
-// Deducciones recurrentes (todas excepto alquiler que es multi-tramo)
-const RECURRING = [
-  { key: 'prep', label: 'Prepaga / Med. privada', icon: '🏥', pct: 100,
-    capInfo: '100% del importe · tope 5% de la ganancia neta anual' },
-  { key: 'dom',  label: 'Personal doméstico',     icon: '🧹', pct: 100,
-    capInfo: `100% del importe · tope anual MNI (${fmt(A.MNI)})` },
-  { key: 'segv', label: 'Seguro de vida',          icon: '🛡️', pct: 100,
-    capInfo: `100% del importe · tope ${fmt(A.SEG_VIDA_TOPE)} por año` },
-  { key: 'segr', label: 'Seguro de retiro',        icon: '📋', pct: 100,
-    capInfo: `100% del importe · tope ${fmt(A.SEG_VIDA_TOPE)} por año` },
-  { key: 'hip',  label: 'Crédito hipotecario',     icon: '🏦', pct: 100,
-    capInfo: `Intereses · tope $ ${A.HIP_TOPE.toLocaleString('es-AR')} por año` },
-];
+// Calculado en render (no en módulo) — A se llena después de _initArca
+function buildRecurring() {
+  return [
+    { key: 'prep', label: 'Prepaga / Med. privada', icon: '🏥', pct: 100,
+      capInfo: '100% del importe · tope 5% de la ganancia neta anual' },
+    { key: 'dom',  label: 'Personal doméstico',     icon: '🧹', pct: 100,
+      capInfo: `100% del importe · tope anual MNI (${fmt(A.MNI)})` },
+    { key: 'segv', label: 'Seguro de vida',          icon: '🛡️', pct: 100,
+      capInfo: `100% del importe · tope ${fmt(A.SEG_VIDA_TOPE)} por año` },
+    { key: 'segr', label: 'Seguro de retiro',        icon: '📋', pct: 100,
+      capInfo: `100% del importe · tope ${fmt(A.SEG_VIDA_TOPE)} por año` },
+    { key: 'hip',  label: 'Crédito hipotecario',     icon: '🏦', pct: 100,
+      capInfo: `Intereses · tope $ ${A.HIP_TOPE.toLocaleString('es-AR')} por año` },
+  ];
+}
 
 const OTROS_SUBTIPOS = {
   '40': [
@@ -50,12 +52,12 @@ const emptyConfig = () => ({
 });
 
 function configToDedData(cfg) {
+  const recurring = buildRecurring();
   return Array(12).fill(null).map((_, i) => {
     const row = {};
-    // Alquiler: suma de todos los tramos que incluyen este mes
     row.alq = cfg.alq.tramos.reduce((s, t) =>
       s + (t.meses.includes(i) ? (t.importe || 0) : 0), 0);
-    for (const d of RECURRING) {
+    for (const d of recurring) {
       row[d.key] = cfg[d.key].meses.includes(i) ? (cfg[d.key].importe || 0) : 0;
     }
     row.otros40  = cfg.otros.filter(o => o.tipo === '40'  && o.mes === i).reduce((s, o) => s + (o.importe || 0), 0);
@@ -65,6 +67,7 @@ function configToDedData(cfg) {
 }
 
 export default function DedForm({ onChange }) {
+  const RECURRING = buildRecurring();
   const [cfg, setCfg] = useState(emptyConfig);
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(null);

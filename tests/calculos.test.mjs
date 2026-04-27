@@ -2,6 +2,22 @@
  * Tests de cálculos — Ganancias 4ª Categoría 2026
  * Ejecutar: node tests/calculos.test.mjs
  */
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dir = dirname(fileURLToPath(import.meta.url));
+const root  = resolve(__dir, '..');
+
+// Inicializar datos desde JSON antes de importar lógica
+import { _initArca }      from '../src/constants/arca2026.js';
+import { _initConvenios } from '../src/constants/convenios.js';
+import { _initFormulas }  from '../src/logic/formula.js';
+
+_initArca(JSON.parse(readFileSync(resolve(root, 'public/arca2026.json'), 'utf8')));
+_initFormulas(JSON.parse(readFileSync(resolve(root, 'public/formulas.json'), 'utf8')));
+_initConvenios(JSON.parse(readFileSync(resolve(root, 'public/convenios.json'), 'utf8')));
+
 import { A, ESCENARIOS_PISO } from '../src/constants/arca2026.js';
 import { calcularImpuesto, encontrarTramo, detalleEscala } from '../src/logic/impuesto.js';
 import { calcularDeduccionesPersonales, calcularCapsAnuales } from '../src/logic/deducciones.js';

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { calcular } from './logic/calcular.js';
 import { ajustarPorVacaciones } from './logic/vacaciones.js';
+import { getConfigDefault } from './constants/argentina.js';
 import PisoTable from './components/PisoTable.jsx';
 import DatosForm from './components/DatosForm.jsx';
 import SueldoForm from './components/SueldoForm.jsx';
@@ -15,11 +16,13 @@ import ResumenFinal from './components/Resultados/ResumenFinal.jsx';
 
 const emptyDed = () => ({ alq: 0, prep: 0, dom: 0, segv: 0, segr: 0, hip: 0, otros40: 0, otros100: 0 });
 
-const CONFIG_DEFAULT = {
+// Defaults cargados desde /public/argentina.json vía _initArgentina
+const CONFIG_DEFAULT = () => ({
   pJubilacion: 11, pObraSocial: 3, pPAMI: 3,
   conyuge: 0, hijos: 0, hijosInc: 0,
   convenio: 'general',
-};
+  ...getConfigDefault(),
+});
 
 const SUELDO_DEFAULT = {
   fijo: true,
@@ -40,6 +43,7 @@ const MES_HOY = 3; // Abril 2026 (0-indexed)
 export default function App() {
   const [config, setConfig]         = useState(CONFIG_DEFAULT);
   const [theme, setTheme]           = useState(() => localStorage.getItem('theme') || 'auto');
+  const [showJsonMap, setShowJsonMap] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
@@ -149,6 +153,17 @@ export default function App() {
     <>
       <div className="header">
         <div className="header-actions">
+          <button
+            onClick={() => setShowJsonMap(v => !v)}
+            title="Mostrar/ocultar mapa JSON"
+            style={{
+              background: showJsonMap ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.3)',
+              color: showJsonMap ? '#2b6cb0' : 'white',
+              borderRadius: '6px', padding: '0.3rem 0.55rem',
+              cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, lineHeight: 1,
+            }}
+          >&#123;&#125;</button>
           <button className={`theme-btn${theme !== 'auto' ? ' active' : ''}`} onClick={cycleTheme}>
             {themeLabel}
           </button>
@@ -175,6 +190,7 @@ export default function App() {
           <DatosForm
             config={config}
             onChange={setConfig}
+            showJsonMap={showJsonMap}
             onLoadSueldo={s => setSueldo(prev => ({ ...prev, ...s }))}
           />
         </div>
@@ -183,7 +199,7 @@ export default function App() {
         <SueldoForm sueldoConfig={sueldoConfig} onChange={setSueldo} />
 
         {/* PASO 3: Vacaciones */}
-        <VacacionesForm vacConfig={vacConfig} sueldoBase={sueldoBase} onChange={setVac} />
+        <VacacionesForm vacConfig={vacConfig} sueldoBase={sueldoBase} onChange={setVac} showJsonMap={showJsonMap} />
 
         {/* PASO 4: Deducciones adicionales (colapsable) */}
         <DedForm onChange={setDedData} />

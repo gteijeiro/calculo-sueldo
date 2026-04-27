@@ -1,11 +1,12 @@
 import React from 'react';
 import { resumenVacaciones, haberVacacional, DIAS_MES_2026 } from '../logic/vacaciones.js';
+import JsonMapBadge from './JsonMapBadge.jsx';
 
 function fmt(n) {
   return '$ ' + Math.round(n).toLocaleString('es-AR');
 }
 
-export default function VacacionesForm({ vacConfig, sueldoBase, onChange }) {
+export default function VacacionesForm({ vacConfig, sueldoBase, onChange, showJsonMap = false }) {
   const { tiene, fechaInicio, cantDias, cobradoPorAdelantado, divisorSueldo = 30 } = vacConfig;
 
   const set = (key, val) => onChange({ ...vacConfig, [key]: val });
@@ -31,6 +32,7 @@ export default function VacacionesForm({ vacConfig, sueldoBase, onChange }) {
         />
         Tomé vacaciones en 2026
       </label>
+      <JsonMapBadge visible={showJsonMap} path="vacaciones.tiene" variable="tiene" defaultValue={false} ley="LCT Art.150" />
 
       {tiene && (
         <>
@@ -50,6 +52,7 @@ export default function VacacionesForm({ vacConfig, sueldoBase, onChange }) {
               (todo el período cobrado en el mes que comienzan)
             </span>
           </label>
+          <JsonMapBadge visible={showJsonMap} path="vacaciones.cobrado_por_adelantado" variable="cobradoPorAdelantado" defaultValue={true} />
           {/* Divisor del sueldo para calcular reducción por días de vacaciones */}
           <div style={{ marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--gray-800)' }}>
             <div style={{ fontWeight: 600, marginBottom: '0.4rem' }}>
@@ -84,6 +87,7 @@ export default function VacacionesForm({ vacConfig, sueldoBase, onChange }) {
                 </span>
               </label>
             </div>
+            <JsonMapBadge visible={showJsonMap} path="vacaciones.divisor_sueldo" variable="divisorSueldo" defaultValue={30} formulaId="reduccion_sueldo_vacaciones" />
           </div>
 
           <div className="form-grid" style={{ maxWidth: '520px', marginBottom: '1rem' }}>
@@ -96,6 +100,7 @@ export default function VacacionesForm({ vacConfig, sueldoBase, onChange }) {
                 max="2026-12-31"
                 onChange={e => set('fechaInicio', e.target.value)}
               />
+              <JsonMapBadge visible={showJsonMap} path="vacaciones.fecha_inicio" variable="fechaInicio" defaultValue="2026-01-01" />
             </div>
             <div className="form-group">
               <label>
@@ -109,6 +114,7 @@ export default function VacacionesForm({ vacConfig, sueldoBase, onChange }) {
                 max="35"
                 onChange={e => set('cantDias', parseInt(e.target.value) || 0)}
               />
+              <JsonMapBadge visible={showJsonMap} path="vacaciones.cant_dias" variable="cantDias" defaultValue={14} ley="LCT Art.150" formulaId="haber_vacacional" />
             </div>
           </div>
 
