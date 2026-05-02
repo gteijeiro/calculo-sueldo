@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { fmt } from '../../utils/format.js';
 import { getDivisorSueldo } from '../../logic/vacaciones.js';
 import { CONVENIOS_DETALLE } from '../../constants/convenios.js';
+import { getReciboConfig, getArgentina } from '../../constants/argentina.js';
 
 const T = (value, tip) => <span data-tip={tip}>{fmt(value)}</span>;
 
@@ -26,7 +27,10 @@ function SubRecibo({ label, color, borderColor, base, pJubilacion, pObraSocial, 
   );
 }
 
-export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = 'general' }) {
+const REM_KEYS   = ['he50','he100','comisiones','antiguedad','presentismo','guardia','premios','otrosRem'];
+const NO_REM_KEYS= ['viaticos','snrParitaria','snrEmergencia','beneficios','herramientas','otrosNoRem'];
+
+export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = 'general', conceptosData = [] }) {
   const { detalleM, pAp, sacAutoCalc, sacUsados, config, vacAn, diasVacs } = resultado;
   const { pJubilacion, pObraSocial, pPAMI } = config;
   const [mesAbierto, setMesAbierto] = useState(null);
@@ -37,8 +41,39 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
   const pExtras = descExtras.reduce((s, d) => s + d.pct / 100, 0);
 
   const tieneVac    = vacAn > 0;
-  const colTotal    = tieneVac ? 8 : 7;
   const pApPct      = Math.round(pAp * 100);
+
+  // Conceptos desde JSON
+  const arg         = getArgentina();
+  const remDef      = arg?.conceptos_remunerativos   ?? [];
+  const noRemDef    = arg?.conceptos_no_remunerativos ?? [];
+  const labelRem    = id => remDef.find(c => c.id === id)?.label   ?? id;
+  const labelNoRem  = id => noRemDef.find(c => c.id === id)?.label ?? id;
+  const leyRem      = id => remDef.find(c => c.id === id)?.ley     ?? '';
+
+  // ¿Hay algún concepto extra en cualquier mes?
+  const hayExtrasRem   = detalleM.some(d => (d.extraRem || 0) > 0);
+  const hayExtrasNoRem = detalleM.some(d => (d.extraNoRem || 0) > 0);
+
+  // Columnas y secciones desde argentina.json
+  const reciboConfig   = getReciboConfig();
+  const columnasDef    = reciboConfig?.columnas_tabla ?? [];
+  const seccionesDef   = reciboConfig?.secciones_detalle ?? [];
+
+  const columnas = columnasDef.filter(col => {
+    if (col.visible === 'si_hay_vacaciones') return tieneVac;
+    if (col.visible === 'si_hay_extras_rem')   return hayExtrasRem;
+    if (col.visible === 'si_hay_extras_no_rem') return hayExtrasNoRem;
+    return col.visible === true;
+  });
+  // Si no hay config JSON, usar columnas hardcoded + extras dinámicos
+  const colBase  = tieneVac ? 8 : 7;
+  const colExtra = (hayExtrasRem ? 1 : 0) + (hayExtrasNoRem ? 1 : 0);
+  const colTotal = (columnas.length || colBase) + (columnasDef.length === 0 ? colExtra : 0);
+
+  const seccion = id => seccionesDef.find(s => s.id === id) ?? {};
+  const fila = (secId, filaId) => seccion(secId)?.filas?.find(f => f.id === filaId) ?? {};
+  const pctLabel = pct_config => config[pct_config] ?? '';
   const diasVacTotal = diasVacs ? diasVacs.reduce((s, v) => s + v, 0) : 0;
   const mesesConVac  = detalleM.filter(m => (m.vac || 0) > 0).length;
 
@@ -69,14 +104,28 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
         <table className="det-table" style={{ minWidth: '600px' }}>
           <thead>
             <tr>
-              <th>Mes</th>
-              <th>Sueldo bruto</th>
-              {tieneVac && <th>Hab. vacacionales</th>}
-              <th>SAC</th>
-              <th>Jubilación<br/><span style={{fontWeight:400,fontSize:'0.65rem'}}>{pJubilacion}%</span></th>
-              <th>Obra social<br/><span style={{fontWeight:400,fontSize:'0.65rem'}}>{pObraSocial}%</span></th>
-              <th>PAMI<br/><span style={{fontWeight:400,fontSize:'0.65rem'}}>{pPAMI}%</span></th>
-              <th>Neto (sin Ganancias)</th>
+              {columnas.length > 0
+                ? columnas.map(col => (
+                    <th key={col.id} title={col.ley}>
+                      {col.label}
+                      {col.pct_config && (
+                        <><br/><span style={{fontWeight:400,fontSize:'0.65rem'}}>{pctLabel(col.pct_config)}%</span></>
+                      )}
+                    </th>
+                  ))
+                : <>
+                    <th>Mes</th>
+                    <th>Sueldo bruto</th>
+                    {hayExtrasRem && <th>Extras rem.</th>}
+                    {tieneVac && <th>Hab. vacacionales</th>}
+                    <th>SAC</th>
+                    {hayExtrasNoRem && <th>No rem.</th>}
+                    <th>Jubilación<br/><span style={{fontWeight:400,fontSize:'0.65rem'}}>{pJubilacion}%</span></th>
+                    <th>Obra social<br/><span style={{fontWeight:400,fontSize:'0.65rem'}}>{pObraSocial}%</span></th>
+                    <th>PAMI<br/><span style={{fontWeight:400,fontSize:'0.65rem'}}>{pPAMI}%</span></th>
+                    <th>Neto (sin Ganancias)</th>
+                  </>
+              }
             </tr>
           </thead>
           <tbody>
@@ -103,12 +152,18 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
               const reduccionVac = sueldoBase - d.sueldo;
               const diasTrab     = diasVacMes > 0 ? (divMes - diasVacMes) : null;
 
-              // Sub-recibo sueldo (SAC no genera aportes en recibo)
+              // Conceptos por mes
+              const conMes   = conceptosData[i] || {};
+              const extraRem = d.extraRem || 0;
+              const extraNoRem = d.extraNoRem || 0;
+
+              // Sub-recibo sueldo: aportes sobre base + extras rem
               const baseSueldo = d.sueldo || 0;
-              const jubS = baseSueldo * pJubilacion / 100;
-              const osS  = baseSueldo * pObraSocial / 100;
-              const pamS = baseSueldo * pPAMI       / 100;
-              const netS = baseSueldo - jubS - osS - pamS;
+              const baseConExtras = baseSueldo + extraRem;
+              const jubS = baseConExtras * pJubilacion / 100;
+              const osS  = baseConExtras * pObraSocial / 100;
+              const pamS = baseConExtras * pPAMI       / 100;
+              const netS = baseConExtras - jubS - osS - pamS;
 
               const jubV = d.vac * pJubilacion / 100;
               const osV  = d.vac * pObraSocial / 100;
@@ -125,6 +180,11 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
                     <td>{T(d.sueldo, reduccionVac > 0
                       ? `Base ${fmt(sueldoBase)} − vacaciones ${fmt(reduccionVac)} = ${fmt(d.sueldo)}`
                       : `Sueldo bruto del mes: ${fmt(d.sueldo)}`)}</td>
+                    {hayExtrasRem && (
+                      <td style={{ color: extraRem > 0 ? 'var(--green-dark)' : 'var(--gray-400)' }}>
+                        {extraRem > 0 ? T(extraRem, `Extras remunerativos: ${fmt(extraRem)}`) : '—'}
+                      </td>
+                    )}
                     {tieneVac && (
                       <td style={{ color: d.vac > 0 ? 'var(--green-dark)' : 'var(--gray-400)' }}>
                         {d.vac > 0
@@ -139,6 +199,11 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
                             : `Dato ingresado: ${fmt(d.sac)}`)
                         : '—'}
                     </td>
+                    {hayExtrasNoRem && (
+                      <td style={{ color: extraNoRem > 0 ? 'var(--orange-dark)' : 'var(--gray-400)' }}>
+                        {extraNoRem > 0 ? T(extraNoRem, `No remunerativos: ${fmt(extraNoRem)}`) : '—'}
+                      </td>
+                    )}
                     <td className="d-red">{T(-jubTotal, `${fmt(baseRecibo)} × ${pJubilacion}% = ${fmt(jubTotal)}`)}</td>
                     <td className="d-red">{T(-osTotal,  `${fmt(baseRecibo)} × ${pObraSocial}% = ${fmt(osTotal)}`)}</td>
                     <td className="d-red">{T(-pamiTotal,`${fmt(baseRecibo)} × ${pPAMI}% = ${fmt(pamiTotal)}`)}</td>
@@ -153,10 +218,10 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
                       <td colSpan={colTotal} style={{ padding: '0.6rem 1rem', background: 'var(--bg-card-alt)', fontSize: '0.82rem' }}>
 
                         {/* ── SUB-RECIBO SUELDO ── */}
-                        <SubRecibo label={`Recibo de sueldo — ${d.mes}`} borderColor="#4299e1">
-                          <tr><td style={{...secStyle, color:'var(--green-dark)'}} colSpan={2}>Haberes</td></tr>
+                        <SubRecibo label={`Recibo de sueldo — ${d.mes}`} borderColor={seccion('haberes_sueldo').color_borde || '#4299e1'}>
+                          <tr><td style={{...secStyle, color:'var(--green-dark)'}} colSpan={2}>{seccion('haberes_sueldo').label || 'Haberes'}</td></tr>
                           <tr>
-                            <td style={rowStyle}>Sueldo bruto mensual</td>
+                            <td style={rowStyle}>{fila('haberes_sueldo','sueldo_bruto').label || 'Sueldo bruto mensual'}</td>
                             <td style={{...monoRight, color:'var(--green-dark)'}}>
                               {T(sueldoBase, reduccionVac > 0
                                 ? `Sueldo base: ${fmt(sueldoBase)}`
@@ -166,7 +231,7 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
                           {reduccionVac > 0 && (
                             <tr>
                               <td style={{...rowStyle, color:'var(--red-dark)'}}>
-                                (−) Reducción por vacaciones ({diasVacMes} días)
+                                {fila('haberes_sueldo','reduccion_vacaciones').label || '(−) Reducción por vacaciones'} ({diasVacMes} días)
                               </td>
                               <td style={{...monoRight, color:'var(--red-dark)'}}>
                                 {T(-reduccionVac,
@@ -185,29 +250,64 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
                               </td>
                             </tr>
                           )}
+                          {/* Extras remunerativos (cada uno) */}
+                          {REM_KEYS.map(k => {
+                            const v = conMes[k] || 0;
+                            if (!v) return null;
+                            return (
+                              <tr key={k}>
+                                <td style={{...rowStyle, color:'var(--green-dark)'}}>
+                                  {labelRem(k)}
+                                  <span style={{ fontSize:'0.67rem', display:'block', opacity:0.7 }}>{leyRem(k)}</span>
+                                </td>
+                                <td style={{...monoRight, color:'var(--green-dark)'}}>{T(v, `${labelRem(k)}: ${fmt(v)}`)}</td>
+                              </tr>
+                            );
+                          })}
                           <tr style={totalStyle}>
-                            <td style={rowStyle}>Total haberes</td>
+                            <td style={rowStyle}>{fila('haberes_sueldo','total_haberes_sueldo').label || 'Total haberes'}</td>
                             <td style={monoRight}>
-                              {T(baseSueldo, `Sueldo del período: ${fmt(baseSueldo)}`)}
+                              {T(baseConExtras, `Sueldo ${fmt(baseSueldo)}${extraRem > 0 ? ` + extras ${fmt(extraRem)}` : ''} = ${fmt(baseConExtras)}`)}
                             </td>
                           </tr>
-                          <tr><td style={{...secStyle, color:'var(--red-dark)'}} colSpan={2}>Descuentos</td></tr>
+                          {/* Conceptos no remunerativos */}
+                          {extraNoRem > 0 && (<>
+                            <tr><td style={{...secStyle, color:'var(--orange-dark)'}} colSpan={2}>Conceptos no remunerativos</td></tr>
+                            {NO_REM_KEYS.map(k => {
+                              const v = conMes[k] || 0;
+                              if (!v) return null;
+                              return (
+                                <tr key={k}>
+                                  <td style={{...rowStyle, color:'var(--orange-dark)'}}>
+                                    {labelNoRem(k)}
+                                    <span style={{ fontSize:'0.67rem', display:'block', opacity:0.7 }}>Sin aportes · sin Ganancias</span>
+                                  </td>
+                                  <td style={{...monoRight, color:'var(--orange-dark)'}}>{T(v, `${labelNoRem(k)}: ${fmt(v)}`)}</td>
+                                </tr>
+                              );
+                            })}
+                            <tr style={totalStyle}>
+                              <td style={rowStyle}>Total no remunerativos</td>
+                              <td style={{...monoRight, color:'var(--orange-dark)'}}>{T(extraNoRem, `No rem.: ${fmt(extraNoRem)}`)}</td>
+                            </tr>
+                          </>)}
+                          <tr><td style={{...secStyle, color:'var(--red-dark)'}} colSpan={2}>{seccion('descuentos_sueldo').label || 'Descuentos'}</td></tr>
                           <tr>
-                            <td style={rowStyle}>Jubilación SIPA ({pJubilacion}%)</td>
+                            <td style={rowStyle}>{fila('descuentos_sueldo','jubilacion').label || 'Jubilación SIPA'} ({pJubilacion}%)</td>
                             <td style={{...monoRight, color:'var(--red-dark)'}}>
-                              {T(-jubS, `${fmt(d.sueldo)} × ${pJubilacion}% = ${fmt(jubS)}`)}
+                              {T(-jubS, `${fmt(baseConExtras)} × ${pJubilacion}% = ${fmt(jubS)}`)}
                             </td>
                           </tr>
                           <tr>
-                            <td style={rowStyle}>Obra social ({pObraSocial}%)</td>
+                            <td style={rowStyle}>{fila('descuentos_sueldo','obra_social').label || 'Obra social'} ({pObraSocial}%)</td>
                             <td style={{...monoRight, color:'var(--red-dark)'}}>
-                              {T(-osS, `${fmt(d.sueldo)} × ${pObraSocial}% = ${fmt(osS)}`)}
+                              {T(-osS, `${fmt(baseConExtras)} × ${pObraSocial}% = ${fmt(osS)}`)}
                             </td>
                           </tr>
                           <tr>
-                            <td style={rowStyle}>PAMI ({pPAMI}%)</td>
+                            <td style={rowStyle}>{fila('descuentos_sueldo','pami').label || 'PAMI / INSSJP'} ({pPAMI}%)</td>
                             <td style={{...monoRight, color:'var(--red-dark)'}}>
-                              {T(-pamS, `${fmt(d.sueldo)} × ${pPAMI}% = ${fmt(pamS)}`)}
+                              {T(-pamS, `${fmt(baseConExtras)} × ${pPAMI}% = ${fmt(pamS)}`)}
                             </td>
                           </tr>
                           {descExtras.map(de => {
@@ -225,28 +325,28 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
                             );
                           })}
                           <tr style={totalStyle}>
-                            <td style={rowStyle}>Total descuentos</td>
+                            <td style={rowStyle}>{fila('descuentos_sueldo','total_descuentos').label || 'Total descuentos'}</td>
                             <td style={{...monoRight, color:'var(--red-dark)'}}>
-                              {T(-(jubS+osS+pamS + d.sueldo*pExtras),
-                                `Aportes ${fmt(jubS+osS+pamS)}${pExtras > 0 ? ` + convenio ${fmt(d.sueldo*pExtras)}` : ''} = ${fmt(jubS+osS+pamS + d.sueldo*pExtras)}`)}
+                              {T(-(jubS+osS+pamS + baseConExtras*pExtras),
+                                `Aportes ${fmt(jubS+osS+pamS)}${pExtras > 0 ? ` + convenio ${fmt(baseConExtras*pExtras)}` : ''} = ${fmt(jubS+osS+pamS + baseConExtras*pExtras)}`)}
                             </td>
                           </tr>
                           <tr style={{ background: 'var(--blue-light)', fontWeight: 700 }}>
-                            <td style={{...rowStyle, color:'var(--blue-dark)'}}>Neto sueldo (sin Ganancias)</td>
+                            <td style={{...rowStyle, color:'var(--blue-dark)'}}>{fila('neto','neto_sin_ganancias').label || 'Neto sueldo (sin Ganancias)'}</td>
                             <td style={{...monoRight, color:'var(--blue-dark)', fontSize:'0.88rem'}}>
-                              {T(netS - d.sueldo*pExtras,
-                                `${fmt(d.sueldo)} − descuentos ${fmt(jubS+osS+pamS + d.sueldo*pExtras)} = ${fmt(netS - d.sueldo*pExtras)}`)}
+                              {T(netS - baseConExtras*pExtras + extraNoRem,
+                                `${fmt(baseConExtras)} − descuentos ${fmt(jubS+osS+pamS + baseConExtras*pExtras)}${extraNoRem > 0 ? ` + no rem. ${fmt(extraNoRem)}` : ''} = ${fmt(netS - baseConExtras*pExtras + extraNoRem)}`)}
                             </td>
                           </tr>
                           {d.retencion > 0 && (() => {
-                            const netoConGan = netS - d.sueldo*pExtras - d.retencion;
+                            const netoConGan = netS - baseConExtras*pExtras + extraNoRem - d.retencion;
                             return (<>
-                              <tr><td style={{...secStyle, color:'var(--red-dark)'}} colSpan={2}>Impuesto a las Ganancias</td></tr>
+                              <tr><td style={{...secStyle, color:'var(--red-dark)'}} colSpan={2}>{seccion('ganancias').label || 'Impuesto a las Ganancias'}</td></tr>
                               <tr>
                                 <td style={{...rowStyle, color:'var(--red-dark)'}}>
-                                  Retención Ganancias 4ª Cat. — {d.mes}
+                                  {fila('ganancias','retencion').label || 'Retención Ganancias 4ª Cat.'} — {d.mes}
                                   <span style={{ display:'block', fontSize:'0.67rem', opacity:0.8 }}>
-                                    Calculada por método acumulado RG 4003/2017
+                                    {fila('ganancias','retencion').nota || 'Calculada por método acumulado RG 4003/2017'}
                                   </span>
                                 </td>
                                 <td style={{...monoRight, color:'var(--red-dark)'}}>
@@ -254,7 +354,7 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
                                 </td>
                               </tr>
                               <tr style={{ background: 'var(--green-light)', fontWeight: 800, borderTop: '2px solid var(--green-dark)' }}>
-                                <td style={{...rowStyle, color:'var(--green-dark)', fontSize:'0.88rem'}}>Neto a cobrar (con Ganancias)</td>
+                                <td style={{...rowStyle, color:'var(--green-dark)', fontSize:'0.88rem'}}>{fila('neto','neto_con_ganancias').label || 'Neto a cobrar (con Ganancias)'}</td>
                                 <td style={{...monoRight, color:'var(--green-dark)', fontSize:'0.95rem'}}>
                                   {T(netoConGan, `Neto sin Gan. ${fmt(netS - d.sueldo*pExtras)} − Ganancias ${fmt(d.retencion)} = ${fmt(netoConGan)}`)}
                                 </td>
@@ -263,14 +363,14 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
                           })()}
                           {d.retencion < 0 && (() => {
                             const devolucion = Math.abs(d.retencion);
-                            const netoConGan = netS - d.sueldo*pExtras + devolucion;
+                            const netoConGan = netS - baseConExtras*pExtras + extraNoRem + devolucion;
                             return (<>
-                              <tr><td style={{...secStyle, color:'var(--green-dark)'}} colSpan={2}>Impuesto a las Ganancias</td></tr>
+                              <tr><td style={{...secStyle, color:'var(--green-dark)'}} colSpan={2}>{seccion('ganancias').label_devolucion || seccion('ganancias').label || 'Impuesto a las Ganancias'}</td></tr>
                               <tr>
                                 <td style={{...rowStyle, color:'var(--green-dark)'}}>
-                                  Devolución Ganancias 4ª Cat. — {d.mes}
+                                  {fila('ganancias','devolucion').label || 'Devolución Ganancias 4ª Cat.'} — {d.mes}
                                   <span style={{ display:'block', fontSize:'0.67rem', opacity:0.8 }}>
-                                    El acumulado bajó — empleador devuelve retención excedente
+                                    {fila('ganancias','devolucion').nota || 'El acumulado bajó — empleador devuelve retención excedente'}
                                   </span>
                                 </td>
                                 <td style={{...monoRight, color:'var(--green-dark)'}}>
@@ -278,7 +378,7 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
                                 </td>
                               </tr>
                               <tr style={{ background: 'var(--green-light)', fontWeight: 800, borderTop: '2px solid var(--green-dark)' }}>
-                                <td style={{...rowStyle, color:'var(--green-dark)', fontSize:'0.88rem'}}>Neto a cobrar (con Ganancias)</td>
+                                <td style={{...rowStyle, color:'var(--green-dark)', fontSize:'0.88rem'}}>{fila('neto','neto_con_ganancias').label || 'Neto a cobrar (con Ganancias)'}</td>
                                 <td style={{...monoRight, color:'var(--green-dark)', fontSize:'0.95rem'}}>
                                   {T(netoConGan, `Neto sin Gan. ${fmt(netS - d.sueldo*pExtras)} + devolución ${fmt(devolucion)} = ${fmt(netoConGan)}`)}
                                 </td>
@@ -300,35 +400,35 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
                             ? `${fmt(sueldoBase)} ÷ 25 × ${diasVacTotal} días (total) = ${fmt(d.vac)}`
                             : `${fmt(sueldoBase)} ÷ 25 × ${diasVacMes} días = ${fmt(d.vac)}`;
                           return (
-                            <SubRecibo label={`Recibo de vacaciones — ${d.mes} (${labelDias})`} borderColor="#38a169">
-                              <tr><td style={{...secStyle, color:'var(--green-dark)'}} colSpan={2}>Haberes</td></tr>
+                            <SubRecibo label={`Recibo de vacaciones — ${d.mes} (${labelDias})`} borderColor={seccion('neto').color_borde || '#38a169'}>
+                              <tr><td style={{...secStyle, color:'var(--green-dark)'}} colSpan={2}>{seccion('haberes_sueldo').label || 'Haberes'}</td></tr>
                               <tr>
-                                <td style={rowStyle}>Hab. vacacionales</td>
+                                <td style={rowStyle}>{fila('haberes_sueldo','haberes_vacacionales')?.label || 'Hab. vacacionales'}</td>
                                 <td style={{...monoRight, color:'var(--green-dark)'}}>
                                   {T(d.vac, vacTip)}
                                 </td>
                               </tr>
-                              <tr><td style={{...secStyle, color:'var(--red-dark)'}} colSpan={2}>Descuentos</td></tr>
+                              <tr><td style={{...secStyle, color:'var(--red-dark)'}} colSpan={2}>{seccion('descuentos_sueldo').label || 'Descuentos'}</td></tr>
                               <tr>
-                                <td style={rowStyle}>Jubilación SIPA ({pJubilacion}%)</td>
+                                <td style={rowStyle}>{fila('descuentos_sueldo','jubilacion').label || 'Jubilación SIPA'} ({pJubilacion}%)</td>
                                 <td style={{...monoRight, color:'var(--red-dark)'}}>
                                   {T(-jubV, `${fmt(d.vac)} × ${pJubilacion}% = ${fmt(jubV)}`)}
                                 </td>
                               </tr>
                               <tr>
-                                <td style={rowStyle}>Obra social ({pObraSocial}%)</td>
+                                <td style={rowStyle}>{fila('descuentos_sueldo','obra_social').label || 'Obra social'} ({pObraSocial}%)</td>
                                 <td style={{...monoRight, color:'var(--red-dark)'}}>
                                   {T(-osV, `${fmt(d.vac)} × ${pObraSocial}% = ${fmt(osV)}`)}
                                 </td>
                               </tr>
                               <tr>
-                                <td style={rowStyle}>PAMI ({pPAMI}%)</td>
+                                <td style={rowStyle}>{fila('descuentos_sueldo','pami').label || 'PAMI / INSSJP'} ({pPAMI}%)</td>
                                 <td style={{...monoRight, color:'var(--red-dark)'}}>
                                   {T(-pamV, `${fmt(d.vac)} × ${pPAMI}% = ${fmt(pamV)}`)}
                                 </td>
                               </tr>
                               <tr style={totalStyle}>
-                                <td style={rowStyle}>Total descuentos</td>
+                                <td style={rowStyle}>{fila('descuentos_sueldo','total_descuentos').label || 'Total descuentos'}</td>
                                 <td style={{...monoRight, color:'var(--red-dark)'}}>
                                   {T(-(jubV+osV+pamV), `${fmt(d.vac)} × ${pApPct}% = ${fmt(jubV+osV+pamV)}`)}
                                 </td>

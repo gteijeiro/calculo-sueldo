@@ -6,18 +6,34 @@ let _data = null;
 export function _initArgentina(data) {
   _data = data;
 
-  // Fórmulas embebidas en deducciones del recibo
+  // Fórmulas embebidas en deducciones del recibo (jubilacion, obra_social, pami)
   const dedFormulas = Object.values(data.recibo_sueldo.deducciones)
     .map(d => ({ ...d.formula, ley: d.ley }));
 
   // Fórmulas embebidas en vacaciones
   const vacFormulas = Object.values(data.vacaciones.formulas);
 
+  // Art.85: NO se registran desde aquí — sus IDs (cap_con_tope, cap_con_porcentaje)
+  // son genéricos y ya están en formulas.json con tope como input variable.
+  // Las definiciones en argentina.json son documentación de los parámetros concretos.
+
   _initFormulas([...dedFormulas, ...vacFormulas]);
 }
 
 export function getArgentina() {
   return _data;
+}
+
+export function getReciboConfig() {
+  return _data?.recibo_sueldo_detalle_mensual ?? null;
+}
+
+export function getDetalleConfig() {
+  return _data?.detalle_base_calculo ?? null;
+}
+
+export function getResumenConfig() {
+  return _data?.resumen_final ?? null;
 }
 
 /** Defaults de config iniciales leídos desde el JSON */

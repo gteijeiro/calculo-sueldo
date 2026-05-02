@@ -1,0 +1,131 @@
+{
+  "ley": "26844",
+  "titulo": "Régimen Especial de Contrato de Trabajo — Personal de Casas Particulares",
+  "subtitulo": "Ley 26.844 — Liquidación de haberes",
+  "vigencia": "2026-H1",
+  "nota_pisos": "Valores orientativos H1 2026. Actualizar con escala salarial UATRE/SUTEP vigente.",
+
+  "modalidades": [
+    { "id": "con_retiro",  "label": "Con retiro",               "descripcion": "El personal no pernocta en el domicilio del empleador." },
+    { "id": "sin_retiro",  "label": "Sin retiro (cama adentro)","descripcion": "El personal pernocta en el domicilio. Incluye alimentación y alojamiento." }
+  ],
+
+  "categorias": {
+    "con_retiro": [
+      { "id": "supervisor",    "label": "Supervisores/as",                    "descripcion": "Personal que supervisa y conduce a otros empleados domésticos.", "sueldo_mensual": 940000,  "ley": "Ley 26.844 / CCT UATRE" },
+      { "id": "especializado", "label": "Personal especializado",             "descripcion": "Cocinero/a profesional, niñero/a especializado, institutriz.",   "sueldo_mensual": 830000,  "ley": "Ley 26.844 / CCT UATRE" },
+      { "id": "cuidados",      "label": "Personal de cuidados",               "descripcion": "Cuidador/a de personas adultas, con discapacidad o niños.",      "sueldo_mensual": 750000,  "ley": "Ley 26.844 / CCT UATRE" },
+      { "id": "aux_cuidados",  "label": "Auxiliares de cuidados",             "descripcion": "Acompañante terapéutico, auxiliar de cuidados básicos.",         "sueldo_mensual": 690000,  "ley": "Ley 26.844 / CCT UATRE" },
+      { "id": "generales",     "label": "Tareas generales del hogar",         "descripcion": "Limpieza, lavado, planchado y tareas generales del hogar.",      "sueldo_mensual": 630000,  "ley": "Ley 26.844 / CCT UATRE" }
+    ],
+    "sin_retiro": [
+      { "id": "supervisor",    "label": "Supervisores/as",                    "descripcion": "Personal que supervisa y conduce a otros empleados domésticos.", "sueldo_mensual": 1130000, "ley": "Ley 26.844 / CCT UATRE" },
+      { "id": "especializado", "label": "Personal especializado",             "descripcion": "Cocinero/a profesional, niñero/a especializado, institutriz.",   "sueldo_mensual": 990000,  "ley": "Ley 26.844 / CCT UATRE" },
+      { "id": "cuidados",      "label": "Personal de cuidados",               "descripcion": "Cuidador/a de personas adultas, con discapacidad o niños.",      "sueldo_mensual": 900000,  "ley": "Ley 26.844 / CCT UATRE" },
+      { "id": "aux_cuidados",  "label": "Auxiliares de cuidados",             "descripcion": "Acompañante terapéutico, auxiliar de cuidados básicos.",         "sueldo_mensual": 830000,  "ley": "Ley 26.844 / CCT UATRE" },
+      { "id": "generales",     "label": "Tareas generales del hogar",         "descripcion": "Limpieza, lavado, planchado y tareas generales del hogar.",      "sueldo_mensual": 760000,  "ley": "Ley 26.844 / CCT UATRE" }
+    ]
+  },
+
+  "jornada_completa_horas_semanales": 48,
+  "divisor_valor_hora": 200,
+
+  "tramos_horas_semanales": [
+    { "id": "menos_12",  "label": "Menos de 12 hs/semana",  "desde": 1,  "hasta": 11, "aportes_afip_fijos": 8884.78  },
+    { "id": "12_a_16",   "label": "12 a 16 hs/semana",      "desde": 12, "hasta": 16, "aportes_afip_fijos": 13955.89 },
+    { "id": "mas_16",    "label": "Más de 16 hs/semana",    "desde": 17, "hasta": 48, "aportes_afip_fijos": 37449.05 }
+  ],
+
+  "nota_aportes_afip": "Montos fijos ARCA H1 2026 abonados por el empleador vía F.102/RT. Incluyen la porción del trabajador y del empleador. Actualizar con tabla oficial ARCA cada semestre.",
+
+  "aportes_trabajador": [
+    { "id": "jubilacion", "label": "Jubilación SIPA",  "pct": 11,  "ley": "Ley 24.241 Art.11",  "deducible_ganancias": true  },
+    { "id": "obra_social","label": "Obra social",       "pct": 3,   "ley": "Ley 23.660",         "deducible_ganancias": true  },
+    { "id": "pami",       "label": "PAMI / INSSJP",    "pct": 3,   "ley": "Ley 19.032",         "deducible_ganancias": true  }
+  ],
+
+  "contribuciones_empleador": [
+    { "id": "jub_emp",   "label": "Jubilación SIPA",           "pct": 12,  "ley": "Ley 24.241"  },
+    { "id": "os_emp",    "label": "Obra social",               "pct": 6,   "ley": "Ley 23.660"  },
+    { "id": "pami_emp",  "label": "PAMI / INSSJP",             "pct": 1.5, "ley": "Ley 19.032"  },
+    { "id": "asig_fam",  "label": "Asignaciones familiares",   "pct": 7.5, "ley": "Ley 24.714"  },
+    { "id": "art",       "label": "ART",                       "pct": 2.7, "ley": "Ley 24.557",  "nota": "Varía por aseguradora (~2.7% referencial)" }
+  ],
+
+  "antiguedad": {
+    "pct_por_anio": 1,
+    "base": "sueldo_basico",
+    "ley": "Ley 26.844 Art.8",
+    "nota": "1% del sueldo básico de categoría por cada año de antigüedad computada desde la fecha de ingreso."
+  },
+
+  "zona_patagonica": {
+    "pct_adicional": 30,
+    "base": "sueldo_minimo_categoria",
+    "ley": "Ley 26.844 / Decreto de zona desfavorable",
+    "nota": "Aplica para provincias: Neuquén, Río Negro, Chubut, Santa Cruz, Tierra del Fuego, La Pampa y parte de Buenos Aires."
+  },
+
+  "horas_extras": {
+    "divisor_valor_hora": 200,
+    "factor_50":  1.5,
+    "factor_100": 2.0,
+    "ley": "Ley 26.844 Art.20",
+    "formula_valor_hora": "sueldo_mensual / 200",
+    "nota": "200 = 48 hs/semana × 4,33 semanas/mes. Las HE del 50% aplican días hábiles; las del 100% en domingos, feriados y jornada nocturna."
+  },
+
+  "conceptos_remunerativos": [
+    { "id": "antiguedad",  "label": "Adicional por antigüedad",     "ley": "Ley 26.844 Art.8",  "incluye_sac": true,  "icon": "📅", "auto": true,  "nota": "1% por año · se calcula desde fecha de ingreso" },
+    { "id": "zona_pat",    "label": "Zona patagónica (+30%)",       "ley": "Ley 26.844",        "incluye_sac": true,  "icon": "🗺️", "auto": true  },
+    { "id": "he50",        "label": "Horas extras 50%",             "ley": "Ley 26.844 Art.20", "incluye_sac": false, "icon": "⏱️", "auto": false },
+    { "id": "he100",       "label": "Horas extras 100%",            "ley": "Ley 26.844 Art.20", "incluye_sac": false, "icon": "⏱️", "auto": false },
+    { "id": "presentismo", "label": "Presentismo",                  "ley": "CCT UATRE",         "incluye_sac": true,  "icon": "✅", "auto": false },
+    { "id": "otrosRem",    "label": "Otros remunerativos",          "ley": "Ley 26.844",        "incluye_sac": true,  "icon": "➕", "auto": false }
+  ],
+
+  "conceptos_no_remunerativos": [
+    { "id": "viaticos",     "label": "Viáticos",                             "ley": "Ley 26.844",       "icon": "🚗" },
+    { "id": "snrParitaria", "label": "Suma no rem. paritaria",               "ley": "CCT / Acuerdo",    "icon": "📋" },
+    { "id": "alojamiento",  "label": "Alojamiento (sin retiro)",             "ley": "Ley 26.844 Art.6", "icon": "🏠", "nota": "Solo modalidad sin retiro" },
+    { "id": "alimentacion", "label": "Alimentación (sin retiro)",            "ley": "Ley 26.844 Art.6", "icon": "🍽️", "nota": "Solo modalidad sin retiro" },
+    { "id": "otrosNoRem",   "label": "Otros no remunerativos",               "ley": "Ley 26.844",       "icon": "➕" }
+  ],
+
+  "vacaciones": {
+    "ley": "Ley 26.844 Art.27",
+    "divisor": 25,
+    "tramos": [
+      { "desde_anios": 0,  "hasta_anios": 1,  "dias": null, "label": "Proporcional — 1 día c/20 trabajados" },
+      { "desde_anios": 1,  "hasta_anios": 5,  "dias": 14,   "label": "14 días corridos" },
+      { "desde_anios": 5,  "hasta_anios": 10, "dias": 21,   "label": "21 días corridos" },
+      { "desde_anios": 10, "hasta_anios": 20, "dias": 28,   "label": "28 días corridos" },
+      { "desde_anios": 20, "hasta_anios": null,"dias": 35,  "label": "35 días corridos" }
+    ]
+  },
+
+  "preaviso": {
+    "ley": "Ley 26.844 Art.48",
+    "tramos": [
+      { "desde_meses": 0,  "hasta_meses": 3,  "dias": 0,  "label": "Sin preaviso" },
+      { "desde_meses": 3,  "hasta_meses": 6,  "dias": 15, "label": "15 días" },
+      { "desde_meses": 6,  "hasta_meses": 12, "dias": 30, "label": "30 días" },
+      { "desde_anios": 1,  "hasta_anios": 5,  "dias": 60, "label": "60 días" },
+      { "desde_anios": 5,  "hasta_anios": null,"dias": 90, "label": "90 días" }
+    ]
+  },
+
+  "indemnizacion": {
+    "ley": "Ley 26.844 Art.63",
+    "base": "mejor remuneración mensual, normal y habitual",
+    "por_anio_o_fraccion": 1,
+    "fraccion_minima_meses": 3
+  },
+
+  "sac": {
+    "ley": "Ley 26.844 Art.33",
+    "base": "mejor remuneración del semestre",
+    "periodos": ["junio", "diciembre"],
+    "formula": "mejor_remuneracion / 2"
+  }
+}

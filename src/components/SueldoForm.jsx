@@ -1,12 +1,13 @@
 import React from 'react';
 import { MESES } from '../constants/arca2026.js';
+import JsonMapBadge from './JsonMapBadge.jsx';
 
 function fmtNum(n) {
   if (!n) return '';
   return Math.round(n).toLocaleString('es-AR');
 }
 
-export default function SueldoForm({ sueldoConfig, onChange }) {
+export default function SueldoForm({ sueldoConfig, onChange, showJsonMap = false }) {
   const { fijo, base, porMes } = sueldoConfig;
 
   const setFijo = v => onChange({ ...sueldoConfig, fijo: v });
@@ -51,6 +52,7 @@ export default function SueldoForm({ sueldoConfig, onChange }) {
               SAC auto: {fmtNum(base / 2)} (junio y diciembre)
             </span>
           )}
+          <JsonMapBadge visible={showJsonMap} path="recibo_sueldo.sueldo_bruto" variable="sueldoBase" defaultValue={0} ley="LCT Art.103" />
         </div>
       ) : (
         <div style={{ overflowX: 'auto' }}>

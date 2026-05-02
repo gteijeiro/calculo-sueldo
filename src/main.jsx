@@ -6,17 +6,17 @@ import { _initArca }       from './constants/arca2026.js';
 import { _initConvenios }  from './constants/convenios.js';
 import { _initArgentina }  from './constants/argentina.js';
 import { _initFormulas }   from './logic/formula.js';
+import { _initLey26844 }   from './components/DatosFormDom.jsx';
 
 Promise.all([
-  fetch('/arca2026.json').then(r => r.json()),
-  fetch('/formulas.json').then(r => r.json()),
-  fetch('/convenios.json').then(r => r.json()),
   fetch('/argentina.json').then(r => r.json()),
-]).then(([arcaData, formulasData, conveniosData, argData]) => {
-  _initArca(arcaData);
-  _initFormulas(formulasData);   // fórmulas genéricas primero
-  _initArgentina(argData);       // registra fórmulas de deducciones Argentina
-  _initConvenios(conveniosData);
+  fetch('/argentina-ley26844.json').then(r => r.json()),
+]).then(([data, data26844]) => {
+  _initArca(data.arca2026);
+  _initFormulas(data.formulas);  // fórmulas genéricas primero
+  _initArgentina(data);          // registra fórmulas de deducciones Argentina
+  _initConvenios(data.convenios);
+  _initLey26844(data26844);
   createRoot(document.getElementById('root')).render(<App />);
 }).catch(err => {
   document.getElementById('root').innerHTML =

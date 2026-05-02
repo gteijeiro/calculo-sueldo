@@ -120,7 +120,7 @@ export default function VacacionesForm({ vacConfig, sueldoBase, onChange, showJs
 
           {resumen && (
             <div style={{
-              background: '#f0fff4', border: '1.5px solid #9ae6b4',
+              background: 'var(--green-light)', border: '1.5px solid var(--green-border, #9ae6b4)',
               borderRadius: '8px', padding: '1rem', marginTop: '0.5rem',
             }}>
               <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--green-dark)', marginBottom: '0.6rem' }}>
@@ -130,16 +130,16 @@ export default function VacacionesForm({ vacConfig, sueldoBase, onChange, showJs
                 <thead>
                   <tr>
                     <th style={{ textAlign: 'left', padding: '0.3rem 0.4rem', color: 'var(--gray-600)',
-                      fontSize: '0.72rem', textTransform: 'uppercase', borderBottom: '1px solid #9ae6b4' }}>Mes</th>
+                      fontSize: '0.72rem', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Mes</th>
                     <th style={{ textAlign: 'center', padding: '0.3rem 0.4rem', color: 'var(--gray-600)',
-                      fontSize: '0.72rem', textTransform: 'uppercase', borderBottom: '1px solid #9ae6b4' }}>Días</th>
+                      fontSize: '0.72rem', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Días</th>
                     <th style={{ textAlign: 'right', padding: '0.3rem 0.4rem', color: 'var(--gray-600)',
-                      fontSize: '0.72rem', textTransform: 'uppercase', borderBottom: '1px solid #9ae6b4' }}>
+                      fontSize: '0.72rem', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>
                       Hab. vacacionales
                     </th>
                     {sueldoBase > 0 && (
                       <th style={{ textAlign: 'right', padding: '0.3rem 0.4rem', color: 'var(--gray-600)',
-                        fontSize: '0.72rem', textTransform: 'uppercase', borderBottom: '1px solid #9ae6b4' }}>
+                        fontSize: '0.72rem', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>
                         Fórmula
                       </th>
                     )}
@@ -149,7 +149,7 @@ export default function VacacionesForm({ vacConfig, sueldoBase, onChange, showJs
                   {resumen.mesesAfectados.map(m => {
                     const hv = sueldoBase > 0 ? haberVacacional(sueldoBase, m.diasEnMes) : null;
                     return (
-                      <tr key={m.mes} style={{ borderBottom: '1px solid #c6f6d5' }}>
+                      <tr key={m.mes} style={{ borderBottom: '1px solid var(--border)' }}>
                         <td style={{ padding: '0.3rem 0.4rem', fontWeight: 600 }}>{m.mes}</td>
                         <td style={{ padding: '0.3rem 0.4rem', textAlign: 'center', color: 'var(--blue-dark)', fontWeight: 700 }}>
                           {m.diasEnMes}

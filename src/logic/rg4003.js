@@ -4,6 +4,7 @@ import { ejecutar } from './formula.js';
 
 export function calcularRG4003({
   sueldos, sacs, vacs, alqs, preps, doms, segvs, segrs, hips, otrs40s, otrs100s,
+  extrasRem = [],
   pAp, dPers, caps, excluirEspAp2 = false,
 }) {
   const resultado = [];
@@ -14,7 +15,8 @@ export function calcularRG4003({
   let otros40Run = 0, otros100Run = 0;
 
   for (let m = 0; m < 12; m++) {
-    sueldoAcum += sueldos[m];
+    const extraRemM = extrasRem[m] || 0;
+    sueldoAcum += sueldos[m] + extraRemM;
     sacAcum    += sacs[m];
     vacAcum    += vacs[m];
     const brutoAcum = sueldoAcum + sacAcum + vacAcum;
@@ -43,12 +45,12 @@ export function calcularRG4003({
     const retencion_m  = ejecutar('retencion_mensual', { impAcum, impPrev });
     impPrev = impAcum;
 
-    const aporteMes = ejecutar('total_aportes', { bruto: sueldos[m] + sacs[m] + vacs[m], pAp });
-    const netoMes_  = ejecutar('neto_mes',      { sueldo: sueldos[m], vac: vacs[m], pAp, retencion: retencion_m });
+    const aporteMes = ejecutar('total_aportes', { bruto: sueldos[m] + extraRemM + sacs[m] + vacs[m], pAp });
+    const netoMes_  = ejecutar('neto_mes',      { sueldo: sueldos[m] + extraRemM, vac: vacs[m], pAp, retencion: retencion_m });
 
     resultado.push({
-      mes: MESES[m], sueldo: sueldos[m], sac: sacs[m], vac: vacs[m],
-      ingreso: sueldos[m] + sacs[m] + vacs[m],
+      mes: MESES[m], sueldo: sueldos[m], extraRem: extraRemM, sac: sacs[m], vac: vacs[m],
+      ingreso: sueldos[m] + extraRemM + sacs[m] + vacs[m],
       sueldoAcum, sacAcum, vacAcum, aporte: aporteMes,
       brutoAcum, gNetaAcum, dPersAcum, dedEspAp2Acum,
       dedArt85Acum, dedTotalAcum,

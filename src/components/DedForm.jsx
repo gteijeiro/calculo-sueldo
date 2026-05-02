@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { A } from '../constants/arca2026.js';
+import JsonMapBadge from './JsonMapBadge.jsx';
 
 const MESES_SHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
@@ -11,15 +12,20 @@ function fmt(n) {
 function buildRecurring() {
   return [
     { key: 'prep', label: 'Prepaga / Med. privada', icon: '🏥', pct: 100,
-      capInfo: '100% del importe · tope 5% de la ganancia neta anual' },
+      capInfo: '100% del importe · tope 5% de la ganancia neta anual',
+      jsonPath: 'deducciones_art85.prepaga', variable: 'prep', ley: 'Ley 27.743 Art.85 b)', formulaId: 'cap_prepaga' },
     { key: 'dom',  label: 'Personal doméstico',     icon: '🧹', pct: 100,
-      capInfo: `100% del importe · tope anual MNI (${fmt(A.MNI)})` },
+      capInfo: `100% del importe · tope anual MNI (${fmt(A.MNI)})`,
+      jsonPath: 'deducciones_art85.doméstico', variable: 'dom', ley: 'Ley 27.743 Art.85 c)', formulaId: 'cap_con_tope' },
     { key: 'segv', label: 'Seguro de vida',          icon: '🛡️', pct: 100,
-      capInfo: `100% del importe · tope ${fmt(A.SEG_VIDA_TOPE)} por año` },
+      capInfo: `100% del importe · tope ${fmt(A.SEG_VIDA_TOPE)} por año`,
+      jsonPath: 'deducciones_art85.seg_vida', variable: 'segv', ley: 'Ley 27.743 Art.85 d)', formulaId: 'cap_con_tope' },
     { key: 'segr', label: 'Seguro de retiro',        icon: '📋', pct: 100,
-      capInfo: `100% del importe · tope ${fmt(A.SEG_VIDA_TOPE)} por año` },
+      capInfo: `100% del importe · tope ${fmt(A.SEG_VIDA_TOPE)} por año`,
+      jsonPath: 'deducciones_art85.seg_retiro', variable: 'segr', ley: 'Ley 27.743 Art.85 d)', formulaId: 'cap_con_tope' },
     { key: 'hip',  label: 'Crédito hipotecario',     icon: '🏦', pct: 100,
-      capInfo: `Intereses · tope $ ${A.HIP_TOPE.toLocaleString('es-AR')} por año` },
+      capInfo: `Intereses · tope $ ${A.HIP_TOPE.toLocaleString('es-AR')} por año`,
+      jsonPath: 'deducciones_art85.hipoteca', variable: 'hip', ley: 'Ley 27.743 Art.85 e)', formulaId: 'cap_con_tope' },
   ];
 }
 
@@ -66,7 +72,7 @@ function configToDedData(cfg) {
   });
 }
 
-export default function DedForm({ onChange }) {
+export default function DedForm({ onChange, showJsonMap = false }) {
   const RECURRING = buildRecurring();
   const [cfg, setCfg] = useState(emptyConfig);
   const [open, setOpen] = useState(false);
@@ -258,10 +264,11 @@ export default function DedForm({ onChange }) {
             {expanded === 'alq' && (
               <div style={{ padding: '0.8rem 1rem 1rem', borderTop: `1px solid var(--border)`,
                 background: 'var(--bg-card-alt)' }}>
-                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0 0 0.7rem' }}>
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0 0 0.5rem' }}>
                   40% del importe · tope anual MNI ({fmt(A.MNI)}).
                   Podés agregar tramos con diferentes montos para distintos períodos del año.
                 </p>
+                <JsonMapBadge visible={showJsonMap} path="deducciones_art85.alquiler" variable="alq" defaultValue={0} ley="Ley 27.743 Art.85 a)" formulaId="cap_alquiler" />
 
                 {cfg.alq.tramos.map((tramo, tIdx) => {
                   const applied = tramo.importe * 0.4;
@@ -395,9 +402,10 @@ export default function DedForm({ onChange }) {
                 {isExp && (
                   <div style={{ padding: '0.8rem 1rem 1rem', borderTop: `1px solid var(--border)`,
                     background: 'var(--bg-card-alt)' }}>
-                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0 0 0.7rem' }}>
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0 0 0.5rem' }}>
                       {def.capInfo}
                     </p>
+                    <JsonMapBadge visible={showJsonMap} path={def.jsonPath} variable={def.variable} defaultValue={0} ley={def.ley} formulaId={def.formulaId} />
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem',
                       marginBottom: '0.9rem', flexWrap: 'wrap' }}>
                       <label style={{ fontSize: '0.84rem', fontWeight: 600, whiteSpace: 'nowrap', margin: 0 }}>
@@ -503,10 +511,12 @@ export default function DedForm({ onChange }) {
                   }}>＋ Agregar 100% — indumentaria / donaciones</button>
                 </div>
 
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
                   <strong>40%:</strong> Honorarios médicos, gastos educativos hijos. &nbsp;
                   <strong>100%:</strong> Indumentaria laboral, col. profesional, donaciones, sepelio.
                 </div>
+                <JsonMapBadge visible={showJsonMap} path="deducciones_art85.otros_40" variable="otros40" defaultValue={0} ley="Ley 27.743 Art.85 varios" formulaId="cap_con_porcentaje" />
+                <JsonMapBadge visible={showJsonMap} path="deducciones_art85.otros_100" variable="otros100" defaultValue={0} ley="Ley 27.743 Art.85 varios" formulaId="cap_con_porcentaje" />
 
                 {cfg.otros.length === 0 && (
                   <p style={{ textAlign: 'center', color: 'var(--text-muted)',

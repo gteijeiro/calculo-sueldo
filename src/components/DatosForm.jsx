@@ -68,6 +68,12 @@ export default function DatosForm({ config, onChange, onLoadSueldo, showJsonMap 
             <option key={c.id} value={c.id}>{c.label}</option>
           ))}
         </select>
+        <JsonMapBadge
+          visible={showJsonMap}
+          path={`convenios.${config.convenio || 'general'}`}
+          variable="convenio"
+          ley={CONVENIOS_DETALLE[config.convenio || 'general']?.cct || undefined}
+        />
         {/* Advertencia rápida */}
         {convenioActual.nota && (
           <div style={{
@@ -106,6 +112,13 @@ export default function DatosForm({ config, onChange, onLoadSueldo, showJsonMap 
                   <div style={{ background: 'var(--blue)', color: 'white', padding: '0.6rem 0.9rem' }}>
                     <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>{det.nombre}</div>
                     {det.cct && <div style={{ fontSize: '0.73rem', opacity: 0.85 }}>{det.cct}</div>}
+                    {showJsonMap && (
+                      <div style={{ marginTop: '0.35rem', fontSize: '0.67rem', fontFamily: 'monospace',
+                        background: 'rgba(255,255,255,0.15)', borderRadius: 3, padding: '0.2rem 0.4rem',
+                        opacity: 0.9 }}>
+                        argentina.json → <strong>convenios.{config.convenio || 'general'}</strong>
+                      </div>
+                    )}
                   </div>
 
                   <div style={{ padding: '0.8rem 0.9rem', background: 'var(--bg-card-alt)' }}>
@@ -143,11 +156,17 @@ export default function DatosForm({ config, onChange, onLoadSueldo, showJsonMap 
                             <td style={{ padding: '0.28rem 0.5rem', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{fmt(config.pPAMI || 3)}</td>
                             <td style={{ padding: '0.28rem 0.5rem', textAlign: 'center', color: 'var(--green-dark)' }}>✓ Sí</td>
                           </tr>
-                          {det.descuentos_extra.map(d => (
+                          {det.descuentos_extra.map((d, di) => (
                             <tr key={d.key} style={{ borderTop: `1px solid var(--border)`, background: 'var(--orange-light)' }}>
                               <td style={{ padding: '0.28rem 0.5rem', color: 'var(--text-main)' }}>
                                 {d.label}
                                 {d.nota && <span style={{ display: 'block', fontSize: '0.67rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>{d.nota}</span>}
+                                {showJsonMap && (
+                                  <span style={{ display: 'block', fontSize: '0.63rem', fontFamily: 'monospace',
+                                    color: '#744210', background: '#fefcbf', borderRadius: 2, padding: '0 3px', marginTop: 2 }}>
+                                    convenios.{config.convenio || 'general'}.descuentos_extra[{di}]
+                                  </span>
+                                )}
                               </td>
                               <td style={{ padding: '0.28rem 0.5rem', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: 'var(--orange-dark)' }}>{fmt(d.pct)}</td>
                               <td style={{ padding: '0.28rem 0.5rem', textAlign: 'center', color: 'var(--red-dark)', fontWeight: 700 }}>✗ No</td>
@@ -191,6 +210,12 @@ export default function DatosForm({ config, onChange, onLoadSueldo, showJsonMap 
                                 <tr key={idx} style={{ borderTop: '1px solid var(--border)' }}>
                                   <td style={{ padding: '0.28rem 0.5rem', color: 'var(--text-main)' }}>
                                     {c.cargo}
+                                    {showJsonMap && (
+                                      <span style={{ display: 'block', fontSize: '0.63rem', fontFamily: 'monospace',
+                                        color: '#2b6cb0', background: '#ebf8ff', borderRadius: 2, padding: '0 3px', marginTop: 2 }}>
+                                        convenios.{config.convenio || 'general'}.cargos[{idx}].sueldo
+                                      </span>
+                                    )}
                                   </td>
                                   <td style={{ padding: '0.28rem 0.5rem', textAlign: 'right',
                                     fontFamily: 'monospace', fontWeight: 700, color: 'var(--blue-dark)' }}>

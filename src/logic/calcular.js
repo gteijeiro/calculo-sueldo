@@ -8,21 +8,22 @@ import { calcularDeduccionesPersonales, calcularCapsAnuales } from './deduccione
 import { calcularImpuesto, encontrarTramo, detalleEscala } from './impuesto.js';
 import { calcularRG4003 } from './rg4003.js';
 
+// Conceptos remunerativos que computan para SAC (excluye horas extras - Art.121 LCT)
+const KEYS_REM     = ['he50','he100','comisiones','antiguedad','presentismo','guardia','premios','otrosRem'];
+const KEYS_SAC     = ['comisiones','antiguedad','presentismo','guardia','premios','otrosRem'];
+const KEYS_NO_REM  = ['viaticos','snrParitaria','snrEmergencia','beneficios','herramientas','otrosNoRem'];
+
+function sumaKeys(obj, keys) {
+  return keys.reduce((s, k) => s + (obj?.[k] || 0), 0);
+}
+
 /**
  * SAC auto-cálculo (RG 4003, Art.16):
  * Cada mes agrega la doceava parte de la mejor remuneración acumulada
  * hasta ese mes en el semestre correspondiente.
  *
- * sac_mes[M] = max(sueldos[0..M]) / 12  (H1)
- * sac_mes[M] = max(sueldos[6..M]) / 12  (H2)
- *
- * Con sueldo constante: 6 meses × max/12 = max/2 (SAC correcto).
- * Con aumento mid-semestre: los meses anteriores usan su propio max.
- *
- * Si el usuario ingresó SAC manualmente en junio/diciembre, se respeta.
- * La mejor remuneración se calcula sobre el bruto total del mes: sueldos[m] + vacs[m].
- * Si ese mes se cobraron vacaciones, el total supera el sueldo declarado y pasa
- * a ser la nueva mejor remuneración para SAC desde ese mes en adelante.
+ * La base SAC = sueldo + extras con incluye_sac=true (excluye HE) + vacaciones.
+ * HE excluidas: no son remuneración "normal y habitual" (Art.121 LCT).
  */
 function autoCalcSAC(sueldos, vacs, sacsOrig) {
   const sacs = [...sacsOrig];
@@ -67,8 +68,14 @@ function autoCalcSAC(sueldos, vacs, sacsOrig) {
 export function calcular(config, mesData, overrides = {}) {
   const { pJubilacion, pObraSocial, pPAMI, conyuge, hijos, hijosInc } = config;
 
-  const sueldos  = mesData.map(m => m.s   || 0);
-  const sacsOrig = mesData.map(m => m.sac || 0);
+  // Extras por mes
+  const extrasRem   = mesData.map(m => sumaKeys(m, KEYS_REM));
+  const extrasSac   = mesData.map(m => sumaKeys(m, KEYS_SAC));
+  const extrasNoRem = mesData.map(m => sumaKeys(m, KEYS_NO_REM));
+
+  const sueldosBase = mesData.map(m => m.s || 0);
+  const sueldos     = sueldosBase;          // alias para ganancias (base puro)
+  const sacsOrig    = mesData.map(m => m.sac || 0);
   // Haberes vacacionales = sueldo del mes ÷ 25 × días de vacaciones
   const diasVacs = mesData.map(m => m.diasVac || 0);
   const vacs     = sueldos.map((s, i) => s / 25 * diasVacs[i]);
@@ -92,12 +99,14 @@ export function calcular(config, mesData, overrides = {}) {
     m.vacImporte != null ? m.vacImporte : vacs[i]
   );
 
-  // SAC: auto-calcular usando bruto total del mes (sueldo + vacaciones)
-  // para capturar meses donde las vacaciones elevan la mejor remuneración
-  const { sacs, autoCalc } = autoCalcSAC(sueldos, vacsFinales, sacsOrig);
+  // SAC: base = sueldo + extras con incluye_sac (excluye HE) + vacaciones
+  const sueldosParaSac = sueldos.map((s, i) => s + extrasSac[i]);
+  const { sacs, autoCalc } = autoCalcSAC(sueldosParaSac, vacsFinales, sacsOrig);
 
+  // Ingresos totales = base + extras remunerativos + SAC + vac
+  const sueldosTotalRem = sueldos.map((s, i) => s + extrasRem[i]);
   const { salAn, sacAn, vacAn, bruto, pAp, aTotal, gNeta } =
-    calcularIngresos(sueldos, sacs, vacsFinales, { jubilacion, obraSocial, pami });
+    calcularIngresos(sueldosTotalRem, sacs, vacsFinales, { jubilacion, obraSocial, pami });
 
   if (bruto <= 0) return null;
 
@@ -127,10 +136,10 @@ export function calcular(config, mesData, overrides = {}) {
   const impAnual  = calcularImpuesto(baseAnual);
   const escala    = detalleEscala(baseAnual);
 
-  // RG 4003: detalle mensual
+  // RG 4003: detalle mensual (sueldos = base; extrasRem se suma internamente)
   const detalleM = calcularRG4003({
     sueldos, sacs, vacs: vacsFinales, alqs, preps, doms, segvs, segrs, hips,
-    otrs40s, otrs100s,
+    otrs40s, otrs100s, extrasRem,
     pAp, dPers: dedPers.total, caps,
     excluirEspAp2: !!overrides.dedEspAp2,
   });
@@ -148,6 +157,9 @@ export function calcular(config, mesData, overrides = {}) {
 
   // Tasas
   const tEfectiva = bruto > 0 ? (impEfectivo / bruto) * 100 : 0;
+
+  // Enriquecer detalleM con extras no-rem por mes (sólo para display en recibo)
+  detalleM.forEach((d, i) => { d.extraNoRem = extrasNoRem[i] || 0; });
 
   return {
     // Ingresos
