@@ -24,6 +24,10 @@ export function getArgentina() {
   return _data;
 }
 
+export function getFeatures() {
+  return _data?.features ?? {};
+}
+
 export function getReciboConfig() {
   return _data?.recibo_sueldo_detalle_mensual ?? null;
 }

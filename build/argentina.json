@@ -1,6 +1,14 @@
 {
   "pais": "argentina",
 
+  "features": {
+    "modulo_ley26844": {
+      "habilitado": false,
+      "label": "🏠 Personal doméstico",
+      "sublabel": "Ley 26.844"
+    }
+  },
+
   "arca2026": {
     "meta": { "periodo": "2026-H1", "fuente": "RG ARCA / Ley 27.743", "actualizacion": "2026-01-01" },
     "A": {
