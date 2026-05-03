@@ -4,8 +4,10 @@ import AppLey26844 from './AppLey26844.jsx';
 import SobreLaPagina from './components/SobreLaPagina.jsx';
 import { getFeatures } from './constants/argentina.js';
 
+const _params = new URLSearchParams(window.location.search);
 // Debug mode solo si ?mode=debug en la URL
-const IS_DEBUG = new URLSearchParams(window.location.search).get('mode') === 'debug';
+const IS_DEBUG = _params.get('mode') === 'debug';
+const DOM_QUERY = _params.get('dom') === '1';
 
 const MODULO_LCT = { id: 'lct',   label: '💼 Relación de dependencia', sublabel: 'LCT / Ley 27.743', color: 'var(--blue)' };
 const MODULO_DOM = { id: 'dom',   label: '🏠 Personal doméstico',       sublabel: 'Ley 26.844',       color: 'var(--orange-dark)' };
@@ -13,7 +15,7 @@ const MODULO_INFO= { id: 'info',  label: 'ℹ️ Sobre la página',          sub
 
 export default function App() {
   const features    = getFeatures();
-  const domHabilitado = features?.modulo_ley26844?.habilitado ?? false;
+  const domHabilitado = DOM_QUERY || (features?.modulo_ley26844?.habilitado ?? false);
 
   const MODULOS = useMemo(() => {
     const list = [MODULO_LCT];
