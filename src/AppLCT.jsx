@@ -140,18 +140,6 @@ export default function AppLCT({ showJsonMap = false }) {
 
   return (
     <div className="container">
-        <PisoTable onLoadConfig={({ pisoMensual, ...configPartial }) => {
-          setConfig(c => ({ ...c, ...configPartial }));
-          if (pisoMensual) setSueldo(s => ({ ...s, fijo: true, base: Math.round(pisoMensual) }));
-          setTimeout(() => datosFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-        }} />
-
-        <div className="alert alert-info">
-          <strong>Cómo usar:</strong> Completá los datos abajo. El cálculo usa el{' '}
-          <strong>método acumulado (RG 4003/2017)</strong>: la retención de cada mes = impuesto
-          sobre GNSI acumulada hasta ese mes − impuesto ya retenido en meses anteriores.
-        </div>
-
         {/* PASO 1: Datos personales y aportes */}
         <div ref={datosFormRef}>
           <DatosForm
@@ -170,6 +158,19 @@ export default function AppLCT({ showJsonMap = false }) {
 
         {/* PASO 3b: Conceptos adicionales */}
         <ConceptosForm conceptosData={conceptosData} onChange={setConceptos} showJsonMap={showJsonMap} />
+
+        {/* Referencia: pisos ganancias */}
+        <PisoTable onLoadConfig={({ pisoMensual, ...configPartial }) => {
+          setConfig(c => ({ ...c, ...configPartial }));
+          if (pisoMensual) setSueldo(s => ({ ...s, fijo: true, base: Math.round(pisoMensual) }));
+          setTimeout(() => datosFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        }} />
+
+        <div className="alert alert-info">
+          <strong>Cómo usar:</strong> El cálculo de ganancias usa el{' '}
+          <strong>método acumulado (RG 4003/2017)</strong>: la retención de cada mes = impuesto
+          sobre GNSI acumulada hasta ese mes − impuesto ya retenido en meses anteriores.
+        </div>
 
         {/* PASO 4: Deducciones adicionales (colapsable) */}
         <DedForm onChange={setDedData} showJsonMap={showJsonMap} />
