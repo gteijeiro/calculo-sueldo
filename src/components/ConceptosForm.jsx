@@ -125,7 +125,7 @@ function ConceptoTabla({ conceptos, conceptosData, onChange, activos, onToggle, 
 }
 
 export default function ConceptosForm({ conceptosData, onChange, conceptosDef }) {
-  const [open, setOpen]     = useState(false);
+  const [open, setOpen]     = useState(true);
   const [activos, setActivos] = useState({});
 
   const arg   = getArgentina();
