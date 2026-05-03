@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import { Analytics } from '@vercel/analytics/react';
 import App from './App.jsx';
 import './App.css';
 import { _initArca }       from './constants/arca2026.js';
@@ -18,7 +19,7 @@ Promise.all([
   _initArgentina(data);          // registra fórmulas de deducciones Argentina
   _initConvenios(data.convenios);
   _initLey26844(data26844);
-  createRoot(document.getElementById('root')).render(<><App /><SpeedInsights /></>);
+  createRoot(document.getElementById('root')).render(<><App /><SpeedInsights /><Analytics /></>);
 }).catch(err => {
   document.getElementById('root').innerHTML =
     `<div style="padding:2rem;color:red;font-family:monospace">
