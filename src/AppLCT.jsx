@@ -140,6 +140,17 @@ export default function AppLCT({ showJsonMap = false }) {
 
   return (
     <div className="container">
+        <div className="alert alert-info" style={{ marginBottom: '1.2rem' }}>
+          <strong>¿Cómo usar esta calculadora?</strong>
+          <p style={{ marginTop: '0.4rem', marginBottom: 0 }}>
+            Cada liquidador de sueldos puede aplicar los conceptos de manera diferente:
+            distintos porcentajes de aportes, adicionales, horas extra, etc.
+            No existe una única forma de liquidar. <strong>Configurá los valores según
+            cómo te liquidan a vos</strong> para obtener una estimación lo más cercana posible
+            a tu recibo real.
+          </p>
+        </div>
+
         {/* PASO 1: Datos personales y aportes */}
         <div ref={datosFormRef}>
           <DatosForm
