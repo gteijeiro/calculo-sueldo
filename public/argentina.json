@@ -99,8 +99,8 @@
   ],
 
   "conceptos_remunerativos": [
-    { "id": "he50",       "label": "Horas extras 50%",               "ley": "LCT Art.201",     "incluye_sac": false, "icon": "⏱️" },
-    { "id": "he100",      "label": "Horas extras 100%",              "ley": "LCT Art.201",     "incluye_sac": false, "icon": "⏱️" },
+    { "id": "he50",       "label": "Horas extras 50%",               "ley": "LCT Art.201",     "incluye_sac": false, "icon": "⏱️", "tipoInput": "horas", "factorHE": 1.5 },
+    { "id": "he100",      "label": "Horas extras 100%",              "ley": "LCT Art.201",     "incluye_sac": false, "icon": "⏱️", "tipoInput": "horas", "factorHE": 2.0 },
     { "id": "comisiones", "label": "Comisiones",                     "ley": "LCT Art.108",     "incluye_sac": true,  "icon": "📈" },
     { "id": "antiguedad", "label": "Adicional por antigüedad",       "ley": "LCT Art.208/CCT", "incluye_sac": true,  "icon": "📅" },
     { "id": "presentismo","label": "Presentismo",                    "ley": "CCT",             "incluye_sac": true,  "icon": "✅" },

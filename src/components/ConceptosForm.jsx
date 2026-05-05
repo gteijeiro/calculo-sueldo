@@ -17,7 +17,7 @@ function fmtMini(n) {
   return `$${k}`;
 }
 
-function ConceptoTabla({ conceptos, conceptosData, onChange, activos, onToggle, colorHead, nota }) {
+function ConceptoTabla({ conceptos, conceptosData, onChange, activos, onToggle, colorHead, nota, sueldoPorMes, divisorHE }) {
   const activosList = conceptos.filter(c => activos[c.id]);
 
   return (
@@ -79,33 +79,53 @@ function ConceptoTabla({ conceptos, conceptosData, onChange, activos, onToggle, 
             <tbody>
               {MESES.map((mes, i) => {
                 const m = conceptosData[i] || {};
-                const totalMes = activosList.reduce((s, c) => s + (m[c.id] || 0), 0);
+                const sueldoMes = sueldoPorMes?.[i] || 0;
+                const dHE = divisorHE || 200;
+                const totalMes = activosList.reduce((s, c) => {
+                  if (c.tipoInput === 'horas') {
+                    return s + (sueldoMes / dHE) * (c.factorHE || 1) * (m[c.id] || 0);
+                  }
+                  return s + (m[c.id] || 0);
+                }, 0);
                 return (
                   <tr key={mes} style={{ borderBottom: '1px solid var(--gray-200)' }}>
                     <td style={{ padding: '0.2rem 0.5rem', fontWeight: 700, color: 'var(--text-main)' }}>{mes}</td>
-                    {activosList.map(c => (
-                      <td key={c.id} style={{ padding: '0.15rem 0.3rem' }}>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={m[c.id] ? String(Math.round(m[c.id])) : ''}
-                          placeholder="0"
-                          onChange={e => {
-                            const v = parseMonto(e.target.value);
-                            const next = conceptosData.map((row, ri) =>
-                              ri === i ? { ...row, [c.id]: v } : row
-                            );
-                            onChange(next);
-                          }}
-                          style={{
-                            width: '100%', textAlign: 'right', padding: '0.2rem 0.4rem',
-                            border: '1.5px solid var(--gray-200)', borderRadius: '4px',
-                            fontSize: '0.8rem', background: 'var(--bg-input, white)',
-                            color: 'var(--text-main)',
-                          }}
-                        />
-                      </td>
-                    ))}
+                    {activosList.map(c => {
+                      const esHoras = c.tipoInput === 'horas';
+                      const horas = m[c.id] || 0;
+                      const importePreview = esHoras && sueldoMes
+                        ? (sueldoMes / dHE) * (c.factorHE || 1) * horas
+                        : 0;
+                      return (
+                        <td key={c.id} style={{ padding: '0.15rem 0.3rem' }}>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={m[c.id] ? String(esHoras ? m[c.id] : Math.round(m[c.id])) : ''}
+                            placeholder="0"
+                            onChange={e => {
+                              const v = parseMonto(e.target.value);
+                              const next = conceptosData.map((row, ri) =>
+                                ri === i ? { ...row, [c.id]: v } : row
+                              );
+                              onChange(next);
+                            }}
+                            style={{
+                              width: '100%', textAlign: 'right', padding: '0.2rem 0.4rem',
+                              border: '1.5px solid var(--gray-200)', borderRadius: '4px',
+                              fontSize: '0.8rem', background: 'var(--bg-input, white)',
+                              color: 'var(--text-main)',
+                            }}
+                          />
+                          {esHoras && importePreview > 0 && (
+                            <div style={{ fontSize: '0.68rem', color: colorHead, textAlign: 'right',
+                              fontFamily: 'monospace', marginTop: '1px' }}>
+                              {fmtMini(importePreview)}
+                            </div>
+                          )}
+                        </td>
+                      );
+                    })}
                     {activosList.length > 1 && (
                       <td style={{ padding: '0.2rem 0.4rem', textAlign: 'right',
                         fontFamily: 'monospace', fontSize: '0.74rem',
@@ -124,7 +144,7 @@ function ConceptoTabla({ conceptos, conceptosData, onChange, activos, onToggle, 
   );
 }
 
-export default function ConceptosForm({ conceptosData, onChange, conceptosDef }) {
+export default function ConceptosForm({ conceptosData, onChange, conceptosDef, sueldoPorMes, divisorHE = 200, onChangeDivisorHE }) {
   const [open, setOpen]     = useState(true);
   const [activos, setActivos] = useState({});
 
@@ -165,6 +185,25 @@ export default function ConceptosForm({ conceptosData, onChange, conceptosDef })
             borderBottom: '2px solid var(--green-dark)', paddingBottom: '0.2rem' }}>
             🟢 Remunerativos
           </div>
+          {rem.some(c => c.tipoInput === 'horas') && onChangeDivisorHE && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-sub)', whiteSpace: 'nowrap' }}>
+                Divisor HE (horas/mes):
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={divisorHE}
+                onChange={e => onChangeDivisorHE(Number(e.target.value) || 200)}
+                style={{ width: '70px', padding: '0.2rem 0.4rem', border: '1.5px solid var(--border)',
+                  borderRadius: '5px', fontSize: '0.82rem', background: 'var(--bg-input)',
+                  color: 'var(--text-main)', textAlign: 'right' }}
+              />
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                Valor hora = sueldo ÷ {divisorHE} · HE50 ×1.5 · HE100 ×2.0
+              </span>
+            </div>
+          )}
           <ConceptoTabla
             conceptos={rem}
             conceptosData={conceptosData}
@@ -173,6 +212,8 @@ export default function ConceptosForm({ conceptosData, onChange, conceptosDef })
             onToggle={toggleActivo}
             colorHead="var(--green-dark)"
             nota="Generan aportes (jub + OS + PAMI) · computan en Ganancias. ⚠️SAC = no computa en mejor sueldo semestral (horas extras)."
+            sueldoPorMes={sueldoPorMes}
+            divisorHE={divisorHE}
           />
 
           <div style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--orange-dark)',
@@ -188,6 +229,8 @@ export default function ConceptosForm({ conceptosData, onChange, conceptosDef })
             onToggle={toggleActivo}
             colorHead="var(--orange-dark)"
             nota="Sin aportes · sin impacto en Ganancias · aparecen en el recibo."
+            sueldoPorMes={sueldoPorMes}
+            divisorHE={divisorHE}
           />
         </div>
       )}

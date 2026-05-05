@@ -103,8 +103,8 @@ export default function App() {
         </div>
       </div>
 
-      {modulo === 'lct'  && <AppLCT showJsonMap={showJsonMap} />}
-      {modulo === 'dom'  && domHabilitado && <AppLey26844 showJsonMap={showJsonMap} />}
+      {modulo === 'lct'  && <AppLCT showJsonMap={showJsonMap} isDebug={IS_DEBUG} />}
+      {modulo === 'dom'  && domHabilitado && <AppLey26844 showJsonMap={showJsonMap} isDebug={IS_DEBUG} />}
       {modulo === 'info' && <SobreLaPagina />}
     </>
   );

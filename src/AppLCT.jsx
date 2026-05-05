@@ -14,6 +14,7 @@ import DetalleMensual from './components/Resultados/DetalleMensual.jsx';
 import PasoAPaso from './components/Resultados/PasoAPaso.jsx';
 import EscalaAlicuotas from './components/Resultados/EscalaAlicuotas.jsx';
 import ResumenFinal from './components/Resultados/ResumenFinal.jsx';
+import ReportarError from './components/ReportarError.jsx';
 
 const emptyDed = () => ({ alq: 0, prep: 0, dom: 0, segv: 0, segr: 0, hip: 0, otros40: 0, otros100: 0 });
 const emptyConceptos = () => ({
@@ -26,6 +27,7 @@ const CONFIG_DEFAULT = () => ({
   pJubilacion: 11, pObraSocial: 3, pPAMI: 3,
   conyuge: 0, hijos: 0, hijosInc: 0,
   convenio: 'general',
+  divisorHE: 200,
   ...getConfigDefault(),
 });
 
@@ -45,7 +47,7 @@ const VAC_DEFAULT = {
 
 const MES_HOY = 3; // Abril 2026 (0-indexed)
 
-export default function AppLCT({ showJsonMap = false }) {
+export default function AppLCT({ showJsonMap = false, isDebug = false }) {
   const [config, setConfig]         = useState(CONFIG_DEFAULT);
   const [sueldoConfig, setSueldo]   = useState(SUELDO_DEFAULT);
   const [vacConfig, setVac]         = useState(VAC_DEFAULT);
@@ -72,9 +74,12 @@ export default function AppLCT({ showJsonMap = false }) {
 
     setRawVacPorMes(vacImpPorMes);
 
+    const divisorHE = config.divisorHE || 200;
+
     let mesData = dedData.map((d, i) => {
       const ex  = excl[i] || {};
       const con = conceptosData[i] || {};
+      const valorHora = sueldosBase[i] / divisorHE;
       return {
         s:          sueldosAjustados[i],
         sac:        0,
@@ -88,8 +93,9 @@ export default function AppLCT({ showJsonMap = false }) {
         hip:        ex.hip     ? 0 : (d.hip     || 0),
         otros40:    ex.otros40  ? 0 : (d.otros40  || 0),
         otros100:   ex.otros100 ? 0 : (d.otros100 || 0),
-        // conceptos adicionales
-        he50: con.he50 || 0, he100: con.he100 || 0,
+        // horas extras: conceptosData almacena horas, se convierte a importe
+        he50:  valorHora * 1.5 * (con.he50  || 0),
+        he100: valorHora * 2.0 * (con.he100 || 0),
         comisiones: con.comisiones || 0, antiguedad: con.antiguedad || 0,
         presentismo: con.presentismo || 0, guardia: con.guardia || 0,
         premios: con.premios || 0, otrosRem: con.otrosRem || 0,
@@ -138,7 +144,26 @@ export default function AppLCT({ showJsonMap = false }) {
 
   const sueldoBase = sueldoConfig.fijo ? sueldoConfig.base : Math.max(...sueldoConfig.porMes);
 
+  const stateSnapshot = { config, sueldoConfig, vacConfig, dedData, conceptosData, exclusions, globalExcl, hastaHoy };
+
+  const loadSnapshot = (json) => {
+    try {
+      const snap = JSON.parse(json);
+      if (snap.config)       setConfig(snap.config);
+      if (snap.sueldoConfig) setSueldo(snap.sueldoConfig);
+      if (snap.vacConfig)    setVac(snap.vacConfig);
+      if (snap.dedData)      setDedData(snap.dedData);
+      if (snap.conceptosData) setConceptos(snap.conceptosData);
+      if (snap.exclusions)   setExclusions(snap.exclusions);
+      if (snap.globalExcl)   setGlobalExcl(snap.globalExcl);
+      if (snap.hastaHoy !== undefined) setHastaHoy(snap.hastaHoy);
+    } catch {
+      alert('JSON inválido');
+    }
+  };
+
   return (
+    <>
     <div className="container">
         <div className="alert alert-info" style={{ marginBottom: '1.2rem' }}>
           <strong>¿Cómo usar esta calculadora?</strong>
@@ -168,7 +193,14 @@ export default function AppLCT({ showJsonMap = false }) {
         <VacacionesForm vacConfig={vacConfig} sueldoBase={sueldoBase} onChange={setVac} showJsonMap={showJsonMap} />
 
         {/* PASO 3b: Conceptos adicionales */}
-        <ConceptosForm conceptosData={conceptosData} onChange={setConceptos} showJsonMap={showJsonMap} />
+        <ConceptosForm
+          conceptosData={conceptosData}
+          onChange={setConceptos}
+          showJsonMap={showJsonMap}
+          sueldoPorMes={sueldoConfig.fijo ? Array(12).fill(sueldoConfig.base) : sueldoConfig.porMes}
+          divisorHE={config.divisorHE || 200}
+          onChangeDivisorHE={v => setConfig(c => ({ ...c, divisorHE: v }))}
+        />
 
         {/* Referencia: pisos ganancias */}
         <PisoTable onLoadConfig={({ pisoMensual, ...configPartial }) => {
@@ -239,5 +271,11 @@ export default function AppLCT({ showJsonMap = false }) {
           </div>
         )}
     </div>
+    <ReportarError
+      stateSnapshot={stateSnapshot}
+      isDebug={isDebug}
+      onLoadSnapshot={loadSnapshot}
+    />
+    </>
   );
 }
