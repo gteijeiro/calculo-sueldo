@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { calcular } from './logic/calcular.js';
 import { ajustarPorVacaciones } from './logic/vacaciones.js';
 import { getConfigDefault } from './constants/argentina.js';
@@ -14,7 +14,10 @@ import DetalleMensual from './components/Resultados/DetalleMensual.jsx';
 import PasoAPaso from './components/Resultados/PasoAPaso.jsx';
 import EscalaAlicuotas from './components/Resultados/EscalaAlicuotas.jsx';
 import ResumenFinal from './components/Resultados/ResumenFinal.jsx';
+import LicenciasForm from './components/LicenciasForm.jsx';
 import ReportarError from './components/ReportarError.jsx';
+import { getArgentina } from './constants/argentina.js';
+import { calcLicenciasPorMes } from './utils/licencias.js';
 
 const emptyDed = () => ({ alq: 0, prep: 0, dom: 0, segv: 0, segr: 0, hip: 0, otros40: 0, otros100: 0 });
 const emptyConceptos = () => ({
@@ -50,6 +53,14 @@ const MES_HOY = 3; // Abril 2026 (0-indexed)
 export default function AppLCT({ showJsonMap = false, isDebug = false }) {
   const [config, setConfig]         = useState(CONFIG_DEFAULT);
   const [sueldoConfig, setSueldo]   = useState(SUELDO_DEFAULT);
+  const [licenciasData, setLicencias] = useState(() => {
+    const tipos = getArgentina()?.licencias_especiales ?? [];
+    return tipos.map(t =>
+      t.multiple
+        ? { id: t.id, activa: false, divisorHaber: 25, divisorDesc: 30, ocurrencias: [] }
+        : { id: t.id, activa: false, fecha: '', dias: t.diasMax || 1, divisorHaber: 25, divisorDesc: 30 }
+    );
+  });
   const [vacConfig, setVac]         = useState(VAC_DEFAULT);
   const [dedData, setDedData]         = useState(() => Array.from({ length: 12 }, emptyDed));
   const [conceptosData, setConceptos] = useState(() => Array.from({ length: 12 }, emptyConceptos));
@@ -144,6 +155,24 @@ export default function AppLCT({ showJsonMap = false, isDebug = false }) {
 
   const sueldoBase = sueldoConfig.fijo ? sueldoConfig.base : Math.max(...sueldoConfig.porMes);
 
+  // Licencias procesadas por mes (para ReciboDeSueldo)
+  const licenciasPorMes = useMemo(() => {
+    const tipos = getArgentina()?.licencias_especiales ?? [];
+    const bases = sueldoConfig.fijo ? Array(12).fill(sueldoConfig.base) : sueldoConfig.porMes;
+    return calcLicenciasPorMes(licenciasData, tipos, bases);
+  }, [licenciasData, sueldoConfig]);
+
+  // conceptosData con he50/he100 convertidos de horas a importe (para ReciboDeSueldo)
+  const conceptosDataConvertidos = useMemo(() => {
+    const bases = sueldoConfig.fijo ? Array(12).fill(sueldoConfig.base) : sueldoConfig.porMes;
+    const dHE = config.divisorHE || 200;
+    return conceptosData.map((con, i) => ({
+      ...con,
+      he50:  (bases[i] / dHE) * 1.5 * (con.he50  || 0),
+      he100: (bases[i] / dHE) * 2.0 * (con.he100 || 0),
+    }));
+  }, [conceptosData, sueldoConfig, config.divisorHE]);
+
   const stateSnapshot = { config, sueldoConfig, vacConfig, dedData, conceptosData, exclusions, globalExcl, hastaHoy };
 
   const loadSnapshot = (json) => {
@@ -192,7 +221,14 @@ export default function AppLCT({ showJsonMap = false, isDebug = false }) {
         {/* PASO 3: Vacaciones */}
         <VacacionesForm vacConfig={vacConfig} sueldoBase={sueldoBase} onChange={setVac} showJsonMap={showJsonMap} />
 
-        {/* PASO 3b: Conceptos adicionales */}
+        {/* PASO 3b: Licencias especiales */}
+        <LicenciasForm
+          sueldoPorMes={sueldoConfig.fijo ? Array(12).fill(sueldoConfig.base) : sueldoConfig.porMes}
+          licenciasData={licenciasData}
+          onChange={setLicencias}
+        />
+
+        {/* PASO 3c: Conceptos adicionales */}
         <ConceptosForm
           conceptosData={conceptosData}
           onChange={setConceptos}
@@ -244,7 +280,7 @@ export default function AppLCT({ showJsonMap = false, isDebug = false }) {
         {resultado && (
           <div ref={resultadoRef} style={{ marginTop: '1.5rem' }}>
             {/* Recibos */}
-            <ReciboDeSueldo resultado={resultado} vacConfig={vacConfig} convenio={config.convenio || 'general'} conceptosData={conceptosData} />
+            <ReciboDeSueldo resultado={resultado} vacConfig={vacConfig} convenio={config.convenio || 'general'} conceptosData={conceptosDataConvertidos} licenciasPorMes={licenciasPorMes} />
             <ReciboVacaciones resultado={resultado} vacConfig={vacConfig} />
 
             {/* Ganancias */}

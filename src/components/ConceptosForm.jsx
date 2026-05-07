@@ -11,10 +11,7 @@ function parseMonto(v) {
 
 function fmtMini(n) {
   if (!n) return '';
-  const k = Math.round(n);
-  if (k >= 1_000_000) return `$${(k/1_000_000).toFixed(1)}M`;
-  if (k >= 1_000)     return `$${(k/1_000).toFixed(0)}K`;
-  return `$${k}`;
+  return '$ ' + Math.round(n).toLocaleString('es-AR');
 }
 
 function ConceptoTabla({ conceptos, conceptosData, onChange, activos, onToggle, colorHead, nota, sueldoPorMes, divisorHE }) {

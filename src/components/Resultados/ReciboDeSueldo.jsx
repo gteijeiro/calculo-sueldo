@@ -30,7 +30,7 @@ function SubRecibo({ label, color, borderColor, base, pJubilacion, pObraSocial, 
 const REM_KEYS   = ['he50','he100','comisiones','antiguedad','presentismo','guardia','premios','otrosRem'];
 const NO_REM_KEYS= ['viaticos','snrParitaria','snrEmergencia','beneficios','herramientas','otrosNoRem'];
 
-export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = 'general', conceptosData = [] }) {
+export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = 'general', conceptosData = [], licenciasPorMes = [] }) {
   const { detalleM, pAp, sacAutoCalc, sacUsados, config, vacAn, diasVacs } = resultado;
   const { pJubilacion, pObraSocial, pPAMI } = config;
   const [mesAbierto, setMesAbierto] = useState(null);
@@ -43,8 +43,11 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
   const tieneVac    = vacAn > 0;
   const pApPct      = Math.round(pAp * 100);
 
-  // Conceptos desde JSON
+  // Límites aportes
   const arg         = getArgentina();
+  const limites     = arg?.aportes_limites_2026 ?? {};
+  const SMVM        = limites.smvm || 0;
+  const SIPA_TOPE   = limites.sipa_tope_empleado || 0;
   const remDef      = arg?.conceptos_remunerativos   ?? [];
   const noRemDef    = arg?.conceptos_no_remunerativos ?? [];
   const labelRem    = id => remDef.find(c => c.id === id)?.label   ?? id;
@@ -130,15 +133,35 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
           </thead>
           <tbody>
             {detalleM.map((d, i) => {
-              if (!d.sueldo && !d.vac) return null;
-              const baseRecibo = (d.sueldo || 0) + (d.vac || 0);
-              const jubTotal   = baseRecibo * pJubilacion / 100;
-              const osTotal    = baseRecibo * pObraSocial / 100;
-              const pamiTotal  = baseRecibo * pPAMI       / 100;
+              const sinDatos = !d.sueldo && !d.vac;
+              if (sinDatos) {
+                return (
+                  <React.Fragment key={d.mes}>
+                    <tr style={{ opacity: 0.45 }}>
+                      <td style={{ fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.82rem' }}>{d.mes}</td>
+                      <td colSpan={colTotal - 1} style={{
+                        color: 'var(--text-muted)', fontSize: '0.75rem', fontStyle: 'italic',
+                      }}>
+                        Sin datos — aportes no calculados
+                      </td>
+                    </tr>
+                  </React.Fragment>
+                );
+              }
+              const baseRecibo  = (d.sueldo || 0) + (d.vac || 0);
+              const bajoPiso    = SMVM > 0 && baseRecibo < SMVM;
+              const superaTope  = SIPA_TOPE > 0 && baseRecibo > SIPA_TOPE;
+              const baseJub     = superaTope ? SIPA_TOPE : baseRecibo;
+              const jubTotal    = baseJub    * pJubilacion / 100;
+              const osTotal     = baseRecibo * pObraSocial / 100;
+              const pamiTotal   = baseRecibo * pPAMI       / 100;
               // Descuentos extra convenio (cuota sindical, etc.) — base: remuneración bruta
               const extrasTotal = baseRecibo * pExtras;
-              const netoTotal  = baseRecibo - jubTotal - osTotal - pamiTotal - extrasTotal;
+              const netoTotal   = baseRecibo - jubTotal - osTotal - pamiTotal - extrasTotal;
               const isOpen   = mesAbierto === i;
+              const licsDelMes    = licenciasPorMes?.[i] ?? [];
+              const totalLics     = licsDelMes.reduce((s, l) => s + l.importe,   0);
+              const totalDescLics = licsDelMes.reduce((s, l) => s + l.descuento, 0);
 
               // Derivar sueldo base para mostrar la reducción por vacaciones
               // Fórmula: sueldo_mes = base − (base/div) × dias_vac → base = sueldo × div / (div − dias_vac)
@@ -204,9 +227,24 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
                         {extraNoRem > 0 ? T(extraNoRem, `No remunerativos: ${fmt(extraNoRem)}`) : '—'}
                       </td>
                     )}
-                    <td className="d-red">{T(-jubTotal, `${fmt(baseRecibo)} × ${pJubilacion}% = ${fmt(jubTotal)}`)}</td>
-                    <td className="d-red">{T(-osTotal,  `${fmt(baseRecibo)} × ${pObraSocial}% = ${fmt(osTotal)}`)}</td>
-                    <td className="d-red">{T(-pamiTotal,`${fmt(baseRecibo)} × ${pPAMI}% = ${fmt(pamiTotal)}`)}</td>
+                    <td className="d-red">
+                      {T(-jubTotal, superaTope
+                        ? `Tope SIPA ${fmt(SIPA_TOPE)} × ${pJubilacion}% = ${fmt(jubTotal)} ①`
+                        : `${fmt(baseRecibo)} × ${pJubilacion}% = ${fmt(jubTotal)}`)}
+                      {superaTope && <sup style={{ color: 'var(--orange-dark)', fontWeight: 900 }}>①</sup>}
+                    </td>
+                    <td className="d-red">
+                      {T(-osTotal, bajoPiso
+                        ? `Base real ${fmt(baseRecibo)} < SMVM ${fmt(SMVM)} — aporte sobre base real ${fmt(osTotal)} ②`
+                        : `${fmt(baseRecibo)} × ${pObraSocial}% = ${fmt(osTotal)}`)}
+                      {bajoPiso && <sup style={{ color: 'var(--orange-dark)', fontWeight: 900 }}>②</sup>}
+                    </td>
+                    <td className="d-red">
+                      {T(-pamiTotal, bajoPiso
+                        ? `Base real ${fmt(baseRecibo)} < SMVM ${fmt(SMVM)} — aporte sobre base real ${fmt(pamiTotal)} ②`
+                        : `${fmt(baseRecibo)} × ${pPAMI}% = ${fmt(pamiTotal)}`)}
+                      {bajoPiso && <sup style={{ color: 'var(--orange-dark)', fontWeight: 900 }}>②</sup>}
+                    </td>
                     <td className="d-grn">{T(netoTotal,
                       extrasTotal > 0
                         ? `${fmt(baseRecibo)} − aportes ${fmt(jubTotal+osTotal+pamiTotal)} − convenio ${fmt(extrasTotal)} = ${fmt(netoTotal)}`
@@ -239,17 +277,48 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
                               </td>
                             </tr>
                           )}
-                          {reduccionVac > 0 && (
+                          {(reduccionVac > 0 || licsDelMes.length > 0) && (
                             <tr style={{ fontWeight: 700 }}>
                               <td style={rowStyle}>
-                                Sueldo del período ({diasTrab} días trabajados)
+                                Sueldo por días trabajados
                               </td>
                               <td style={{...monoRight}}>
-                                {T(d.sueldo,
-                                  `${fmt(sueldoBase)} − ${fmt(reduccionVac)} = ${fmt(d.sueldo)}`)}
+                                {T(d.sueldo - totalDescLics,
+                                  [
+                                    reduccionVac > 0 ? `${fmt(sueldoBase)} − vac ${fmt(reduccionVac)}` : fmt(sueldoBase),
+                                    totalDescLics > 0 ? `− lic ${fmt(totalDescLics)}` : '',
+                                    `= ${fmt(d.sueldo - totalDescLics)}`,
+                                  ].filter(Boolean).join(' '))}
                               </td>
                             </tr>
                           )}
+                          {/* Licencias especiales — deducción + haber */}
+                          {licsDelMes.map((lic, li) => (
+                            <React.Fragment key={li}>
+                              <tr>
+                                <td style={{...rowStyle, color:'var(--red-dark)'}}>
+                                  (−) Días de licencia: {lic.label}
+                                  <span style={{ fontSize:'0.67rem', display:'block', opacity:0.7 }}>
+                                    {lic.dias} día{lic.dias > 1 ? 's' : ''} descontados del sueldo
+                                  </span>
+                                </td>
+                                <td style={{...monoRight, color:'var(--red-dark)'}}>
+                                  {T(-lic.descuento, `Sueldo ÷ 30 × ${lic.dias} días = ${fmt(lic.descuento)}`)}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style={{...rowStyle, color:'var(--blue-dark)'}}>
+                                  (+) {lic.label} (licencia paga)
+                                  <span style={{ fontSize:'0.67rem', display:'block', opacity:0.7 }}>
+                                    Art.158 / LCT — días abonados íntegramente
+                                  </span>
+                                </td>
+                                <td style={{...monoRight, color:'var(--blue-dark)'}}>
+                                  {T(lic.importe, `Licencia paga ${lic.dias} días = ${fmt(lic.importe)}`)}
+                                </td>
+                              </tr>
+                            </React.Fragment>
+                          ))}
                           {/* Extras remunerativos (cada uno) */}
                           {REM_KEYS.map(k => {
                             const v = conMes[k] || 0;
@@ -467,11 +536,38 @@ export default function ReciboDeSueldo({ resultado, vacConfig = {}, convenio = '
           </tbody>
         </table>
       </div>
-      <p style={{ fontSize: '0.71rem', color: 'var(--gray-400)', marginTop: '0.5rem' }}>
-        Clic en un mes para ver el recibo detallado. ⊕ = mes con SAC incluido.
-        El neto no incluye descuento de Ganancias (ver retención mensual abajo).
-        Pasar el cursor sobre cualquier número para ver la fórmula.
-      </p>
+      {(() => {
+        const usaSipaTope  = SIPA_TOPE > 0 && detalleM.some(d => (d.sueldo||0)+(d.vac||0) > SIPA_TOPE);
+        const usaBajoPiso  = SMVM > 0 && detalleM.some(d => { const b=(d.sueldo||0)+(d.vac||0); return b>0 && b<SMVM; });
+        const tieneSinDatos = detalleM.some(d => !d.sueldo && !d.vac);
+        return (
+          <div style={{ fontSize: '0.71rem', color: 'var(--gray-400)', marginTop: '0.5rem', lineHeight: 1.6 }}>
+            <p>Clic en un mes para ver el recibo detallado. ⊕ = mes con SAC incluido.
+            El neto no incluye descuento de Ganancias (ver retención mensual abajo).
+            Pasar el cursor sobre cualquier número para ver la fórmula.</p>
+            {tieneSinDatos && (
+              <p style={{ color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+                <em>Meses en gris:</em> sin datos ingresados — aportes no calculados.
+              </p>
+            )}
+            {usaSipaTope && (
+              <p style={{ color: 'var(--orange-dark)', marginTop: '0.3rem' }}>
+                <sup style={{ fontWeight: 900 }}>①</sup>{' '}
+                <strong>Tope SIPA aplicado:</strong> la base para jubilación (11%) se limitó a {fmt(SIPA_TOPE)}.
+                El excedente no genera aporte al SIPA.
+              </p>
+            )}
+            {usaBajoPiso && (
+              <p style={{ color: 'var(--orange-dark)', marginTop: '0.3rem' }}>
+                <sup style={{ fontWeight: 900 }}>②</sup>{' '}
+                <strong>Sueldo por debajo del SMVM ({fmt(SMVM)}):</strong> los aportes de OS y PAMI se calcularon
+                sobre la remuneración real. El empleador podría estar obligado a calcularlos sobre el SMVM
+                como base mínima según el CCT aplicable — verificar con el liquidador.
+              </p>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }

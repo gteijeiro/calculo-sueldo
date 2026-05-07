@@ -1,6 +1,15 @@
 {
   "pais": "argentina",
 
+  "aportes_limites_2026": {
+    "smvm": 4014439.48,
+    "smvm_nota": "SMVM H1 2026 — actualizar cuando MTSS publique nuevo valor",
+    "sipa_tope_empleado": null,
+    "sipa_tope_nota": "Sin tope para aportes de empleados en relación de dependencia (Ley 26.222/2007). Aplica el 11% sobre la remuneración total sin límite.",
+    "os_piso_base": "smvm",
+    "os_piso_nota": "Si el sueldo es inferior al SMVM, los aportes de OS y PAMI pueden calcularse sobre el SMVM como base mínima según criterio del empleador/CCT."
+  },
+
   "features": {
     "modulo_ley26844": {
       "habilitado": false,
@@ -116,6 +125,134 @@
     { "id": "beneficios",    "label": "Beneficios sociales (Art.103 bis)",    "ley": "LCT Art.103 bis", "icon": "🎁" },
     { "id": "herramientas",  "label": "Elementos de trabajo / celular",       "ley": "LCT Art.103 bis", "icon": "💻" },
     { "id": "otrosNoRem",    "label": "Otros no remunerativos",               "ley": "LCT Art.103",     "icon": "➕" }
+  ],
+
+  "licencias_especiales": [
+    {
+      "id": "matrimonio",
+      "label": "Matrimonio",
+      "icon": "💍",
+      "ley": "LCT Art.158 inc.a",
+      "diasMax": 10,
+      "tipoDias": "hábiles",
+      "descripcion": "10 días hábiles continuos. Debe avisarse con anticipación razonable.",
+      "remunerativo": true,
+      "calculoBase": "mensual"
+    },
+    {
+      "id": "nacimiento",
+      "label": "Nacimiento de hijo",
+      "icon": "👶",
+      "ley": "LCT Art.158 inc.b / Ley 27.716",
+      "diasMax": 15,
+      "tipoDias": "corridos",
+      "descripcion": "15 días corridos para progenitor no gestante (Ley 27.716/2024). Progenitor gestante: licencia por maternidad Art.177 (90 días).",
+      "remunerativo": true,
+      "calculoBase": "mensual"
+    },
+    {
+      "id": "fallecimiento_directo",
+      "label": "Fallecimiento (cónyuge / hijo / padres)",
+      "icon": "🕊️",
+      "ley": "LCT Art.158 inc.b",
+      "diasMax": null,
+      "tipoDias": "corridos",
+      "descripcion": "3 días corridos por cada fallecimiento de cónyuge, conviviente, hijos o padres. Puede ocurrir más de una vez en el año.",
+      "remunerativo": true,
+      "calculoBase": "mensual",
+      "multiple": true,
+      "diasPorOcurrencia": 3,
+      "maxOcurrencias": null
+    },
+    {
+      "id": "fallecimiento_hermano",
+      "label": "Fallecimiento (hermano)",
+      "icon": "🕊️",
+      "ley": "LCT Art.158 inc.b",
+      "diasMax": null,
+      "tipoDias": "corridos",
+      "descripcion": "1 día corrido por cada fallecimiento de hermanos. Puede ocurrir más de una vez en el año.",
+      "remunerativo": true,
+      "calculoBase": "mensual",
+      "multiple": true,
+      "diasPorOcurrencia": 1,
+      "maxOcurrencias": null
+    },
+    {
+      "id": "examen",
+      "label": "Examen (universitario / terciario)",
+      "icon": "📚",
+      "ley": "LCT Art.158 inc.c",
+      "diasMax": 10,
+      "tipoDias": "corridos",
+      "descripcion": "2 días corridos por examen, hasta 10 días por año calendario. Debe presentarse constancia.",
+      "remunerativo": true,
+      "calculoBase": "mensual",
+      "multiple": true,
+      "diasPorOcurrencia": 2,
+      "maxOcurrencias": 5
+    },
+    {
+      "id": "donacion_sangre",
+      "label": "Donación de sangre",
+      "icon": "🩸",
+      "ley": "Ley 22.990 Art.44",
+      "diasMax": null,
+      "tipoDias": "corridos",
+      "descripcion": "El día de la donación. Puede repetirse hasta 4 veces/año (hombres) o 3 veces/año (mujeres) según recomendaciones médicas.",
+      "remunerativo": true,
+      "calculoBase": "mensual",
+      "multiple": true,
+      "diasPorOcurrencia": 1,
+      "maxOcurrencias": null
+    },
+    {
+      "id": "mudanza",
+      "label": "Mudanza",
+      "icon": "📦",
+      "ley": "LCT Art.158 inc.e",
+      "diasMax": 2,
+      "tipoDias": "corridos",
+      "descripcion": "2 días corridos. Requiere acreditación del cambio de domicilio.",
+      "remunerativo": true,
+      "calculoBase": "mensual"
+    },
+    {
+      "id": "enfermedad_inculpable",
+      "label": "Enfermedad / accidente inculpable",
+      "icon": "🏥",
+      "ley": "LCT Art.208",
+      "diasMax": null,
+      "tipoDias": "corridos",
+      "descripcion": "Múltiples episodios posibles; los días se acumulan contra el tope anual. Tope: < 5 años sin cargas = 90 días; < 5 años con cargas = 180 días; ≥ 5 años sin cargas = 180 días; ≥ 5 años con cargas = 365 días. Con certificado médico.",
+      "remunerativo": true,
+      "calculoBase": "mensual",
+      "multiple": true,
+      "diasPorOcurrencia": 1,
+      "maxOcurrencias": null
+    },
+    {
+      "id": "maternidad",
+      "label": "Maternidad",
+      "icon": "🤱",
+      "ley": "LCT Art.177",
+      "diasMax": 90,
+      "tipoDias": "corridos",
+      "descripcion": "90 días: 45 días antes del parto y 45 días después. Puede redistribuirse hasta 30/60. Pago a cargo de ANSES (asignación por maternidad).",
+      "remunerativo": true,
+      "calculoBase": "mensual"
+    },
+    {
+      "id": "paternal_ext",
+      "label": "Licencia parental ampliada (Ley 27.716)",
+      "icon": "👨‍👩‍👧",
+      "ley": "Ley 27.716 / LCT Art.158 bis",
+      "diasMax": 90,
+      "tipoDias": "corridos",
+      "descripcion": "Progenitor no gestante: hasta 90 días continuos o discontinuos en el primer año del hijo. Reemplaza la anterior licencia por paternidad de 2 días.",
+      "remunerativo": true,
+      "calculoBase": "mensual"
+    }
   ],
 
   "recibo_sueldo": {
