@@ -1,3 +1,10 @@
+import { DIAS_MES_2026 } from '../constants/arca2026.js';
+
+function resolverDivisor(divisor, mesIdx) {
+  if (divisor === 'mes') return DIAS_MES_2026[mesIdx] || 30;
+  return Number(divisor) || 30;
+}
+
 export function distribuirDiasPorMes(fechaStr, dias) {
   if (!fechaStr || !dias) return {};
   const result = {};
@@ -23,8 +30,8 @@ export function calcLicenciasPorMes(licenciasData, tipos, sueldosPorMes) {
     if (!lic.activa) return;
     const tipo = tipos.find(t => t.id === lic.id);
     if (!tipo) return;
-    const dH = lic.divisorHaber || 25;
-    const dD = lic.divisorDesc  || 30;
+    const dH       = lic.divisorHaber || 25;
+    const dDRaw    = lic.divisorDesc ?? 30;
     const ocurrencias = lic.ocurrencias
       ? lic.ocurrencias
       : (lic.fecha ? [{ fecha: lic.fecha, dias: lic.dias }] : []);
@@ -34,6 +41,7 @@ export function calcLicenciasPorMes(licenciasData, tipos, sueldosPorMes) {
       Object.entries(dist).forEach(([mes, dias]) => {
         const m = Number(mes);
         const sueldo = sueldosPorMes?.[m] || 0;
+        const dD = resolverDivisor(dDRaw, m);
         result[m].push({
           id:        lic.id,
           label:     tipo.label,

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { getArgentina } from '../constants/argentina.js';
 import { distribuirDiasPorMes } from '../utils/licencias.js';
+import { DIAS_MES_2026 } from '../constants/arca2026.js';
 
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
@@ -8,18 +9,25 @@ function fmt(n) {
   return '$ ' + Math.round(n).toLocaleString('es-AR');
 }
 
-function calcDesdeDistribucion(dist, dH, dD, sueldoPorMes) {
+function resolverDiv(d, mesIdx) {
+  if (d === 'mes') return DIAS_MES_2026[mesIdx] || 30;
+  return Number(d) || 30;
+}
+
+function calcDesdeDistribucion(dist, dH, dDRaw, sueldoPorMes) {
+  const dD = (m) => resolverDiv(dDRaw, m);
   let importe = 0, descuento = 0;
   Object.entries(dist).forEach(([mes, dias]) => {
-    const s = sueldoPorMes?.[Number(mes)] || 0;
-    if (s > 0) { importe += (s / dH) * dias; descuento += (s / dD) * dias; }
+    const m = Number(mes);
+    const s = sueldoPorMes?.[m] || 0;
+    if (s > 0) { importe += (s / dH) * dias; descuento += (s / dD(m)) * dias; }
   });
   return { importe, descuento };
 }
 
 function calcImporteLic(lic, sueldoPorMes) {
-  const dH = lic.divisorHaber || 25;
-  const dD = lic.divisorDesc  || 30;
+  const dH  = lic.divisorHaber || 25;
+  const dD  = lic.divisorDesc ?? 30;
   if (lic.ocurrencias) {
     return lic.ocurrencias.reduce((t, oc) => {
       if (!oc.fecha || !oc.dias) return t;
@@ -161,21 +169,37 @@ export default function LicenciasForm({ sueldoPorMes, licenciasData, onChange })
                 {lic.activa && (
                   <div style={{ marginTop: '0.75rem' }}>
                     {/* Divisores */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.65rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '0.65rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--blue-dark)' }}>Haber ÷</label>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--blue-dark)', minWidth: '80px' }}>Haber ÷</label>
                         <input type="number" min="1" value={dH}
                           onChange={e => upd(tipo.id, { divisorHaber: Number(e.target.value) || 25 })}
                           style={{ ...inputStyle, width: '55px', textAlign: 'right' }}
                         />
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>= {fmt((sueldoPorMes?.[0]||0)/dH)}/día</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>sueldo ÷ {dH} × días</span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--red-dark)' }}>Descuento ÷</label>
-                        <input type="number" min="1" value={dD}
-                          onChange={e => upd(tipo.id, { divisorDesc: Number(e.target.value) || 30 })}
-                          style={{ ...inputStyle, width: '55px', textAlign: 'right' }}
-                        />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--red-dark)', minWidth: '80px' }}>Descuento ÷</span>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', fontSize: '0.78rem' }}>
+                          <input type="radio" name={`dD-${tipo.id}`}
+                            checked={dD === 30 || dD === '30'}
+                            onChange={() => upd(tipo.id, { divisorDesc: 30 })}
+                          />
+                          <strong>30</strong>
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>(estándar)</span>
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', fontSize: '0.78rem' }}>
+                          <input type="radio" name={`dD-${tipo.id}`}
+                            checked={dD === 'mes'}
+                            onChange={() => upd(tipo.id, { divisorDesc: 'mes' })}
+                          />
+                          <strong>Días del mes</strong>
+                          {lic.fecha && (
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
+                              ({DIAS_MES_2026[new Date(lic.fecha + 'T00:00:00').getMonth()] || '—'})
+                            </span>
+                          )}
+                        </label>
                       </div>
                     </div>
 
