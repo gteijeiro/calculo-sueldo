@@ -45,12 +45,14 @@ export function calcularRG4003({
     const retencion_m  = ejecutar('retencion_mensual', { impAcum, impPrev });
     impPrev = impAcum;
 
-    const aporteMes = ejecutar('total_aportes', { bruto: sueldos[m] + extraRemM + sacs[m] + vacs[m], pAp });
-    const netoMes_  = ejecutar('neto_mes',      { sueldo: sueldos[m] + extraRemM, vac: vacs[m], pAp, retencion: retencion_m });
+    const baseSueldo = sueldos[m] + extraRemM + vacs[m];
+    const aporteMes  = ejecutar('total_aportes', { bruto: baseSueldo, pAp });
+    const netoMes_   = ejecutar('neto_mes',      { sueldo: sueldos[m] + extraRemM, vac: vacs[m], pAp, retencion: retencion_m });
 
     resultado.push({
       mes: MESES[m], sueldo: sueldos[m], extraRem: extraRemM, sac: sacs[m], vac: vacs[m],
       ingreso: sueldos[m] + extraRemM + sacs[m] + vacs[m],
+      ingresoSinSac: baseSueldo,
       sueldoAcum, sacAcum, vacAcum, aporte: aporteMes,
       brutoAcum, gNetaAcum, dPersAcum, dedEspAp2Acum,
       dedArt85Acum, dedTotalAcum,

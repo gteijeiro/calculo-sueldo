@@ -279,23 +279,23 @@ export default function PasoAPaso({ resultado, exclusions, onToggle, globalExcl 
                 <td>{chkGlobal('jubilacion', `${fila('aportes_previsionales','jubilacion').label || 'Jubilación SIPA'} (${pJubilacion}%)`)}{Badge('aportes_previsionales','jubilacion')}</td>
                 {V(-d.aporte * (globalExcl.jubilacion ? 0 : pJubilacion) / (pApPct || 1),
                   globalExcl.jubilacion ? 'Excluido del cálculo'
-                  : `${fmt(d.ingreso)} × ${pJubilacion}% = ${fmt(d.ingreso * pJubilacion / 100)}`)}
+                  : `${fmt(d.ingresoSinSac)} × ${pJubilacion}% = ${fmt(d.ingresoSinSac * pJubilacion / 100)}`)}
               </tr>
               <tr className="neg" style={{ opacity: globalExcl.pami ? 0.55 : 1 }}>
                 <td>{chkGlobal('pami', `${fila('aportes_previsionales','pami').label || 'Ley 19032 — PAMI'} (${pPAMI}%)`)}{Badge('aportes_previsionales','pami')}</td>
                 {V(-d.aporte * (globalExcl.pami ? 0 : pPAMI) / (pApPct || 1),
                   globalExcl.pami ? 'Excluido del cálculo'
-                  : `${fmt(d.ingreso)} × ${pPAMI}% = ${fmt(d.ingreso * pPAMI / 100)}`)}
+                  : `${fmt(d.ingresoSinSac)} × ${pPAMI}% = ${fmt(d.ingresoSinSac * pPAMI / 100)}`)}
               </tr>
               <tr className="neg" style={{ opacity: globalExcl.obraSocial ? 0.55 : 1 }}>
                 <td>{chkGlobal('obraSocial', `${fila('aportes_previsionales','obra_social').label || 'Obra social'} (${pObraSocial}%)`)}{Badge('aportes_previsionales','obra_social')}</td>
                 {V(-d.aporte * (globalExcl.obraSocial ? 0 : pObraSocial) / (pApPct || 1),
                   globalExcl.obraSocial ? 'Excluido del cálculo'
-                  : `${fmt(d.ingreso)} × ${pObraSocial}% = ${fmt(d.ingreso * pObraSocial / 100)}`)}
+                  : `${fmt(d.ingresoSinSac)} × ${pObraSocial}% = ${fmt(d.ingresoSinSac * pObraSocial / 100)}`)}
               </tr>
               <tr className="sub neg">
                 <td>{fila('aportes_previsionales','total_aportes').label || 'Total aportes del mes'}{Badge('aportes_previsionales','total_aportes')}</td>
-                {V(-d.aporte, `${fmt(d.ingreso)} × ${pApPct}% (${pJubilacion}+${pObraSocial}+${pPAMI}) = ${fmt(d.aporte)}`)}
+                {V(-d.aporte, `${fmt(d.ingresoSinSac)} × ${pApPct}% (${pJubilacion}+${pObraSocial}+${pPAMI}) = ${fmt(d.aporte)}`)}
               </tr>
 
               {/* ── DEDUCCIONES GENERALES ART. 85 ── */}

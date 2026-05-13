@@ -72,7 +72,7 @@ export default function DetalleMensual({ resultado }) {
                     <td>{T(d.ingreso, `sueldo${d.sac > 0 ? ` + SAC ${fmt(d.sac)}` : ''} = ${fmt(d.ingreso)}`)}</td>
                   )}
                   <td className="d-red">
-                    {T(-d.aporte, `${fmt(d.ingreso)} × ${pApPct}% (${pJubilacion}+${pObraSocial}+${pPAMI}) = ${fmt(d.aporte)}`)}
+                    {T(-d.aporte, `${fmt(d.ingresoSinSac)} × ${pApPct}% (${pJubilacion}+${pObraSocial}+${pPAMI}) = ${fmt(d.aporte)}`)}
                     {(d.vac || 0) > 0 && (
                       <><br/><span style={{fontSize:'0.68rem',color:'var(--gray-400)'}}>
                         incl. <span data-tip={`hab.vac ${fmt(d.vac)} × ${pApPct}%`}>{fmt(-d.vac * pAp)}</span> vac.
